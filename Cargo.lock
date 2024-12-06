@@ -304,6 +304,7 @@ dependencies = [
  "derive",
  "features",
  "image",
+ "serde",
  "serde_json",
 ]
 
