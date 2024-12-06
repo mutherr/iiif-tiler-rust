@@ -9,8 +9,8 @@ mod tiler;
 use tiler::Tiler;
 
 fn main() {
-    let test_path = "src/test/test.png";
-
+    let test_path = "src/test/brazil.jpg";
+    println!{"Loading image from: {}", test_path};
     let img = IIIFImage::new(test_path);
     println!("Created image with ID {}", img.id());
 

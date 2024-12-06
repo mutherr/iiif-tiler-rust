@@ -107,7 +107,7 @@ impl ImageInfo {
     fn initialize_image_info(&mut self) {
         self._scale_factors = Vec::new();
         self._sizes = Vec::new();
-        for i in 0..=self._zoom_levels {
+        for i in (0..=self._zoom_levels).rev() {
             let scale = 2i32.pow(i as u32);
             self._sizes.push((self._image.get_width() / scale, self._image.get_height() / scale));
             self._scale_factors.push(scale);

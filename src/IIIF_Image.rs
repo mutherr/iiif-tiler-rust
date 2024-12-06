@@ -13,7 +13,6 @@ pub struct IIIFImage {
 impl IIIFImage {
 
    pub fn new(img_path: &str) -> IIIFImage {
-      println!{"Loading image from: {}", img_path};
       let loaded = load_image(img_path);
       match loaded {
          Ok((img,id)) => {
