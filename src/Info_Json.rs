@@ -1,19 +1,18 @@
 /**
  * This class generates the IIIF info.json for an image
  */
-use std::collections::HashMap;
 use serde_json::{json, Value, Map};
 
 use crate::Image_Info::ImageInfo;
 
-pub struct InfoJSON {
-    image_info: ImageInfo,
+pub struct InfoJSON<'a> {
+    image_info: &'a ImageInfo<'a>,
     uri: String,
     version: String
 }
 
-impl InfoJSON {
-    pub fn new(image_info: ImageInfo, uri: String, version: String) -> InfoJSON {
+impl<'a> InfoJSON<'a> {
+    pub fn new(image_info: &'a ImageInfo, uri: String, version: String) -> InfoJSON<'a> {
         InfoJSON {
             image_info,
             uri,
@@ -54,7 +53,6 @@ impl InfoJSON {
         for size in self.image_info.get_sizes() {
             let (x,y) = size;
             let size_str = json!({ "height": y, "width": x });
-            println!("{}",size_str);
             sizes_json.push(size_str);
         }
         info_json.insert("sizes".to_string(), Value::String(serde_json::to_string(&sizes_json).unwrap()));

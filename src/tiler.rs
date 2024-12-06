@@ -5,13 +5,13 @@ use crate::Info_Json::InfoJSON;
 use crate::Image_Info::ImageInfo;
 use image::{DynamicImage, GenericImage, GenericImageView, SubImage};
 
-pub struct Tiler {
-    image: ImageInfo,
-    version: String
+pub struct Tiler<'a> {
+    image: &'a ImageInfo<'a>,
+    version: &'a str
 }
 
-impl Tiler {
-    pub fn new(image: ImageInfo, version: String) -> Tiler {
+impl<'a> Tiler<'a> {
+    pub fn new(image: &'a ImageInfo, version: &'a str) -> Tiler<'a> {
         Tiler {
             image,
             version
@@ -21,97 +21,108 @@ impl Tiler {
     pub fn get_output_dir(&self, p_image_dir: &str) -> String {
         return format!("{}/{}", p_image_dir, self.image.id());
     }
+
+    pub fn generate_tiles(&self, p_image_dir: &str) {
+        self._generate_tiles(p_image_dir, &self.image.id());
+    }
+
+    fn _generate_tiles(&self, p_image_dir: &str, p_filename: &str) {
+        let t_img_dir = format!("{}/{}", p_image_dir, p_filename);
+        println!("Using image info {}", self.image);
+        self._generate_sizes(&t_img_dir);
+        self._generate_scale_tiles(&t_img_dir);
+    }
+
+    fn _generate_sizes(&self, p_image_dir: &str) {
+        for t_size in self.image.get_sizes() {
+            let t_size_str = format!("{},{}", t_size.0, t_size.1);
+            let t_scaled_image = self.image.get_image().get_image().resize(t_size.0 as u32, t_size.1 as u32, image::imageops::FilterType::Nearest);
+            let t_output_file = PathBuf::from(format!("{}/full/{}/0/default.jpg", p_image_dir, t_size_str));
+            create_dir_all(t_output_file.parent().unwrap()).expect(&format!("Failed to create directories for {:?}",t_output_file));
+            t_scaled_image.save(t_output_file).unwrap();
+            if t_size.0 == self.image.get_width() && t_size.1 == self.image.get_height() {
+                let t_size_str = if self.version == "3.0" { "max" } else { "full" };
+                let t_output_file = PathBuf::from(format!("{}/full/{}/0/default.jpg", p_image_dir, t_size_str));
+                create_dir_all(t_output_file.parent().unwrap()).expect(&format!("Failed to create directories for {:?}",t_output_file));
+                t_scaled_image.save(t_output_file).unwrap();
+            }
+        }
+    }
+
+    fn _generate_scale_tiles(&self, p_image_dir: &str) {
+        for scale in self.image.get_scale_factors() {
+            let t_scale_level_width = (self.image.get_width() as f32 / scale as f32).floor() as i32;
+            let t_scale_level_height = (self.image.get_height() as f32 / scale as f32).floor() as i32;
+            let mut t_tile_num_width = (t_scale_level_width as f32 / self.image.get_tile_width() as f32).floor() as i32;
+            let mut t_tile_num_height = (t_scale_level_height as f32 / self.image.get_tile_height() as f32).floor() as i32;
+            
+            //add extra images on either axis as needed if the tile size doesn't evenly divide the axis length
+            if (t_scale_level_width % self.image.get_tile_width()) != 0 {
+                t_tile_num_width += 1;
+            }
+            if (t_scale_level_height % self.image.get_tile_height()) != 0 {
+                t_tile_num_height += 1;
+            }
+            for x in 0..t_tile_num_width {
+                for y in 0..t_tile_num_height {
+                    let tile_x = x * self.image.get_tile_width() * scale;
+                    let tile_y = y * self.image.get_tile_height() * scale;
+                    let scaled_tile_width = self.image.get_tile_width() * scale;
+                    let tiled_width_calc = self.image.get_tile_width();
+                    if tile_x + scaled_tile_width > self.image.get_width() {
+                        let scaled_tile_width = self.image.get_width() - tile_x;
+                        let tiled_width_calc = (scaled_tile_width as f32 / scale as f32).ceil() as i32;
+                    }
+                    let scaled_tile_height = self.image.get_tile_height() * scale;
+                    let tiled_height_calc = self.image.get_tile_height();
+                    if tile_y + scaled_tile_height > self.image.get_height() {
+                        let scaled_tile_height = self.image.get_height() - tile_y;
+                        let tiled_height_calc = (scaled_tile_height as f32 / scale as f32).ceil() as i32;
+                    }
+                    let url = if self.version == "3.0" { format!("./{},{},{},{}/0/default.jpg", tile_x, tile_y, scaled_tile_width, scaled_tile_height) } else { format!("./{},{},{},{}/0/default.jpg", tile_x, tile_y, scaled_tile_width, scaled_tile_height) };
+
+                    let t_output_file = PathBuf::from(format!("{}/{}", p_image_dir, url));
+                    create_dir_all(t_output_file.parent().unwrap());
+
+                    let tile_image = self.image.get_image().get_image()
+                                    .crop_imm(tile_x as u32, tile_y as u32, scaled_tile_width as u32, scaled_tile_height as u32)
+                                    .into_rgb8();
+
+                    let mut scaled_image = DynamicImage::ImageRgb8(tile_image.clone());
+                    if tile_image.width() == tiled_width_calc as u32 && tile_image.height() == tiled_height_calc as u32 {
+                        scaled_image = DynamicImage::ImageRgb8(tile_image);
+                    } else if tiled_width_calc > 3 && tiled_height_calc > 3 {
+                        scaled_image = DynamicImage::ImageRgb8(tile_image).resize(tiled_width_calc as u32, tiled_height_calc as u32, image::imageops::FilterType::Nearest);
+                    } else {
+                        scaled_image = scaled_image.resize(tiled_width_calc as u32, tiled_height_calc as u32, image::imageops::FilterType::Nearest);
+                    }
+
+                    match scaled_image.save(&t_output_file) {
+                        Ok(_) => {}
+                        Err(e) => {
+                            println!(
+                                "Failed to write: '{:?}' ({},{}) - Error: {}",
+                                t_output_file.display(),
+                                scaled_image.width(),
+                                scaled_image.height(),
+                                e
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn create_image(image: ImageInfo, output_dir: &str, uri: &str, version: &str) -> String {
+        let tiler = Tiler::new(&image, version);
+        tiler.generate_tiles(output_dir);
+        let info = InfoJSON::new(&image, uri.to_string(), version.to_string());
+        let json = info.to_json();
+        json
+    }
+
 }
-
-//     pub fn generate_tiles(&self, p_image_dir: &str) {
-//         self._generate_tiles(p_image_dir, &self.image.id());
-//     }
-
-//     fn _generate_tiles(&self, p_image_dir: &str, p_filename: &str) {
-//         let t_img_dir = format!("{}/{}", p_image_dir, p_filename);
-//         println!("Using image info {}", self.image);
-//         self._generate_sizes(&t_img_dir);
-//         self._generate_scale_tiles(&t_img_dir);
-//     }
-
-//     fn _generate_sizes(&self, p_image_dir: &str) {
-//         for t_size in self.image.get_sizes() {
-//             let t_size_str = format!("{},{}", t_size.0, t_size.1);
-//             let t_scaled_image = self.image.get_image().get_image().resize(t_size.0 as u32, t_size.1 as u32, image::imageops::FilterType::Nearest);
-//             let t_output_file = PathBuf::from(format!("{}/full/{}/0/default.jpg", p_image_dir, t_size_str));
-//             create_dir_all(t_output_file.parent().unwrap());
-//             t_scaled_image.save(t_output_file).unwrap();
-//             if t_size.0 == self.image.get_width() && t_size.1 == self.image.get_height() {
-//                 let t_size_str = if self.version == "3.0" { "max" } else { "full" };
-//                 let t_output_file = PathBuf::from(format!("{}/full/{}/0/default.jpg", p_image_dir, t_size_str));
-//                 create_dir_all(t_output_file.parent().unwrap());
-//                 t_scaled_image.save(t_output_file).unwrap();
-//             }
-//         }
-//     }
-
-//     fn _generate_scale_tiles(&self, p_image_dir: &str) {
-//         for scale in self.image.get_scale_factors() {
-//             let t_scale_level_width = (self.image.get_width() as f32 / scale as f32).floor() as i32;
-//             let t_scale_level_height = (self.image.get_height() as f32 / scale as f32).floor() as i32;
-//             let t_tile_num_width = (t_scale_level_width as f32 / self.image.get_tile_width() as f32).floor() as i32;
-//             let t_tile_num_height = (t_scale_level_height as f32 / self.image.get_tile_height() as f32).floor() as i32;
-//             if (t_scale_level_width as f32 / scale as f32).ceil() % self.image.get_tile_width() as f32 != 0.0 {
-//                 t_tile_num_width += 1;
-//             }
-//             if (t_scale_level_height as f32 / scale as f32).ceil() % self.image.get_tile_height() as f32 != 0.0 {
-//                 t_tile_num_height += 1;
-//             }
-//             for x in 0..t_tile_num_width {
-//                 for y in 0..t_tile_num_height {
-//                     let tile_x = x * self.image.get_tile_width() * scale;
-//                     let tile_y = y * self.image.get_tile_height() * scale;
-//                     let scaled_tile_width = self.image.get_tile_width() * scale;
-//                     let tiled_width_calc = self.image.get_tile_width();
-//                     if tile_x + scaled_tile_width > self.image.get_width() {
-//                         let scaled_tile_width = self.image.get_width() - tile_x;
-//                         let tiled_width_calc = (scaled_tile_width as f32 / scale as f32).ceil() as i32;
-//                     }
-//                     let scaled_tile_height = self.image.get_tile_height() * scale;
-//                     let tiled_height_calc = self.image.get_tile_height();
-//                     if tile_y + scaled_tile_height > self.image.get_height() {
-//                         let scaled_tile_height = self.image.get_height() - tile_y;
-//                         let tiled_height_calc = (scaled_tile_height as f32 / scale as f32).ceil() as i32;
-//                     }
-//                     let url = format!("./{},{},{},{}/0/default.jpg", tile_x, tile_y, scaled_tile_width, scaled_tile_height);
-//                     let url = if self.version == "3.0" { format!("./{},{},{},{}/0/default.jpg", tile_x, tile_y, scaled_tile_width, scaled_tile_height) } else { format!("./{},{},{},{}/0/default.jpg", tile_x, tile_y, scaled_tile_width, scaled_tile_height) };
-
-//                     let t_output_file = PathBuf::from(format!("{}/{}", p_image_dir, url));
-//                     create_dir_all(t_output_file.parent().unwrap());
-
-//                     let tile_image = DynamicImage::ImageRgb8(self.image.get_image().get_image().sub_image(tile_x as u32, tile_y as u32, scaled_tile_width as u32, scaled_tile_height as u32).to_image());
-//                     let scaled_image: DynamicImage::ImageRgb8;
-//                     if tile_image.width() == tiled_width_calc as u32 && tile_image.height() == tiled_height_calc as u32 {
-//                         scaled_image = DynamicImage::ImageRgb8(tile_image.to_image());
-//                     } else if tiled_width_calc > 3 && tiled_height_calc > 3 {
-//                         scaled_image = DynamicImage::ImageRgb8(tile_image.to_image()).resize(tiled_width_calc as u32, tiled_height_calc as u32, image::imageops::FilterType::Nearest);
-//                     } else {
-//                         scaled_image = tile_image.resize(tiled_width_calc as u32, tiled_height_calc as u32, image::imageops::FilterType::Nearest);
-//                     }
-
-//                     let success = scaled_image.save(t_output_file);
-//                     if !success {
-//                         println!("Failed to write: '{:?}' ({},{})", t_output_file.display(), scaled_image.width(), scaled_image.height());
-//                     }
-//                 }
-//             }
-//         }
-//     }
-
-//     pub fn create_image(image: ImageInfo, output_dir: &str, uri: &str, version: &str) -> String {
-//         let tiler = Tiler::new(image, version.to_string());
-//         tiler.generate_tiles(output_dir);
-//         let info = InfoJSON::new(image, uri.to_string(), version.to_string());
-//         let json = info.to_json();
-//         json
-//     }
-
-// }
 
 
 

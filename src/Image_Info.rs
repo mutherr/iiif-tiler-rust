@@ -4,17 +4,17 @@ use crate::IIIF_Image::IIIFImage;
 /**
  * This class provides information on the scale and sizes of the tiles. 
  */
-pub struct ImageInfo{
+pub struct ImageInfo<'a>{
     _tile_width: i32,
     _tile_height: i32,
     _zoom_levels: i32,
-    _image: IIIFImage,
+    _image: &'a IIIFImage,
     _scale_factors: Vec<i32>,
     _sizes: Vec<(i32,i32)>
 }
 
-impl ImageInfo {
-    pub fn from_image(image: IIIFImage) -> Self {
+impl<'a> ImageInfo<'a> {
+    pub fn from_image(image: &'a IIIFImage) -> Self {
         let mut info = ImageInfo {
             _image:image,
             _tile_width:1024,
@@ -27,7 +27,7 @@ impl ImageInfo {
         return info;
     }
 
-    pub fn new(image: IIIFImage, tile_width: i32, tile_height: i32, zoom_level: i32) -> Self {
+    pub fn new(image: &'a IIIFImage, tile_width: i32, tile_height: i32, zoom_level: i32) -> Self {
         let mut info = ImageInfo {
             _image:image,
             _tile_width:tile_width,
@@ -118,10 +118,6 @@ impl ImageInfo {
         return self._image.id();
     }
 
-    pub fn set_id(&mut self, p_id: String) {
-        self._image.set_id(p_id);
-    }
-
     pub fn get_scale_factors(&self) -> Vec<i32> {
         return self._scale_factors.clone();
     }
@@ -166,13 +162,13 @@ impl ImageInfo {
         return self._image.clone();
     }
 
-    fn set_image(&mut self, p_image: IIIFImage) {
+    fn set_image(&mut self, p_image: &'a IIIFImage) {
         self._image = p_image;
         self.initialize_image_info();
     }
 }
 
-impl fmt::Display for ImageInfo {
+impl fmt::Display for ImageInfo<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Image info:\n\tTile size; width: {}, height: {}\n\tZoom levels: {}\n\t * Sizes: {}\n\t * Scale Factors: {}", self._tile_width, self._tile_height, self._zoom_levels, self._sizes.len(), self._scale_factors.len())
     }
