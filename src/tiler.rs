@@ -49,10 +49,13 @@ impl<'a> Tiler<'a> {
         }
     }
 
+    //TODO: this doesn't do all the same stuff as the java version. Examine more closely in future
     fn _generate_scale_tiles(&self, p_image_dir: &str) {
         for scale in self.image.get_scale_factors() {
+            //height in units of scale rather than px
             let t_scale_level_width = (self.image.get_width() as f32 / scale as f32).floor() as i32;
             let t_scale_level_height = (self.image.get_height() as f32 / scale as f32).floor() as i32;
+            //calculate number of tiles along either axis
             let mut t_tile_num_width = (t_scale_level_width as f32 / self.image.get_tile_width() as f32).floor() as i32;
             let mut t_tile_num_height = (t_scale_level_height as f32 / self.image.get_tile_height() as f32).floor() as i32;
             
@@ -63,6 +66,8 @@ impl<'a> Tiler<'a> {
             if (t_scale_level_height % self.image.get_tile_height()) != 0 {
                 t_tile_num_height += 1;
             }
+
+            //make tiles
             for x in 0..t_tile_num_width {
                 for y in 0..t_tile_num_height {
                     let tile_x = x * self.image.get_tile_width() * scale;
