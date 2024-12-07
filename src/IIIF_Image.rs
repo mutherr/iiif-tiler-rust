@@ -16,9 +16,9 @@ impl IIIFImage {
       let loaded = load_image(img_path);
       match loaded {
          Ok((img,id)) => {
-            return IIIFImage {
+            IIIFImage {
                image: img,
-               id: id,
+               id,
             }
          }
          Err(e) => {
@@ -28,7 +28,7 @@ impl IIIFImage {
    }
 
    pub fn id(&self) -> String {
-      return self.id.clone();
+      self.id.clone()
    }
 
    pub fn set_id(&mut self, p_id: String) {
@@ -36,15 +36,15 @@ impl IIIFImage {
    }
 
    pub fn get_width(&self) -> i32 {
-      return self.image.width() as i32;
+      self.image.width() as i32
    }
 
    pub fn get_height(&self) -> i32 {
-      return self.image.height() as i32;
+      self.image.height() as i32
    }
 
    pub fn get_image(&self) -> DynamicImage {
-      return self.image.clone();
+      self.image.clone()
    }
 
    pub fn set_image(&mut self, p_image: DynamicImage) {
@@ -79,5 +79,5 @@ fn load_image(img_path: &str) -> Result<(DynamicImage, String),Box<dyn std::erro
       println!("Could not extract the file name.");
    }
 
-   return Ok((rgb_img, image_id.to_string()));
+   Ok((rgb_img, image_id.to_string()))
 }

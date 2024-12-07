@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 
 use crate::Info_Json::InfoJSON;
 use crate::Image_Info::ImageInfo;
-use image::{DynamicImage, GenericImage, GenericImageView, SubImage};
+use image::{DynamicImage, GenericImageView};
 
 pub struct Tiler<'a> {
     image: &'a ImageInfo<'a>,
@@ -19,7 +19,7 @@ impl<'a> Tiler<'a> {
     }
 
     pub fn get_output_dir(&self, p_image_dir: &str) -> String {
-        return format!("{}/{}", p_image_dir, self.image.id());
+        format!("{}/{}", p_image_dir, self.image.id())
     }
 
     pub fn generate_tiles(&self, p_image_dir: &str) {
@@ -38,12 +38,12 @@ impl<'a> Tiler<'a> {
             let t_size_str = format!("{},{}", t_size.0, t_size.1);
             let t_scaled_image = self.image.get_image().get_image().resize(t_size.0 as u32, t_size.1 as u32, image::imageops::FilterType::Nearest);
             let t_output_file = PathBuf::from(format!("{}/full/{}/0/default.jpg", p_image_dir, t_size_str));
-            create_dir_all(t_output_file.parent().unwrap()).expect(&format!("Failed to create directories for {:?}",t_output_file));
+            create_dir_all(t_output_file.parent().unwrap()).unwrap_or_else(|_| panic!("Failed to create directories for {:?}",t_output_file));
             t_scaled_image.save(t_output_file).unwrap();
             if t_size.0 == self.image.get_width() && t_size.1 == self.image.get_height() {
                 let t_size_str = if self.version == "3.0" { "max" } else { "full" };
                 let t_output_file = PathBuf::from(format!("{}/full/{}/0/default.jpg", p_image_dir, t_size_str));
-                create_dir_all(t_output_file.parent().unwrap()).expect(&format!("Failed to create directories for {:?}",t_output_file));
+                create_dir_all(t_output_file.parent().unwrap()).unwrap_or_else(|_| panic!("Failed to create directories for {:?}",t_output_file));
                 t_scaled_image.save(t_output_file).unwrap();
             }
         }
@@ -84,6 +84,7 @@ impl<'a> Tiler<'a> {
                         let scaled_tile_height = self.image.get_height() - tile_y;
                         let tiled_height_calc = (scaled_tile_height as f32 / scale as f32).ceil() as i32;
                     }
+                    //TODO: Correct this, the spec for 2.1 is wrong
                     let url = if self.version == "3.0" { format!("./{},{},{},{}/0/default.jpg", tile_x, tile_y, scaled_tile_width, scaled_tile_height) } else { format!("./{},{},{},{}/0/default.jpg", tile_x, tile_y, scaled_tile_width, scaled_tile_height) };
 
                     let t_output_file = PathBuf::from(format!("{}/{}", p_image_dir, url));
@@ -123,8 +124,8 @@ impl<'a> Tiler<'a> {
         let tiler = Tiler::new(&image, version);
         tiler.generate_tiles(output_dir);
         let info = InfoJSON::new(&image, uri.to_string(), version.to_string());
-        let json = info.to_json();
-        json
+        
+        info.to_json()
     }
 
 }

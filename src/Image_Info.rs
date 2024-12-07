@@ -24,7 +24,7 @@ impl<'a> ImageInfo<'a> {
             _sizes: Vec::new()
         };
         info.initialize_image_info();
-        return info;
+        info
     }
 
     pub fn new(image: &'a IIIFImage, tile_width: i32, tile_height: i32, zoom_level: i32) -> Self {
@@ -37,7 +37,7 @@ impl<'a> ImageInfo<'a> {
             _sizes: Vec::new()
         };
         info.initialize_image_info();
-        return info;
+        info
     }
 
     pub fn fit_to_zoom_level(&mut self) {
@@ -69,14 +69,14 @@ impl<'a> ImageInfo<'a> {
             self.set_tile_height(t_tile_size);
             self.set_zoom_level(t_zoom);
             self.initialize_image_info();
-            println!("Found combinations {} with a file count of {}", self.to_string(), t_file_count);
+            println!("Found combinations {} with a file count of {}", self, t_file_count);
         } else {
             panic!("Failed to find combination under {} files", p_max_file_no);
         }
     }
 
     pub fn calculate_file_count(&self) -> i32 {
-        return self._calculate_file_count(self._zoom_levels, self._tile_width, self._tile_height);
+        self._calculate_file_count(self._zoom_levels, self._tile_width, self._tile_height)
     }
 
     fn _calculate_file_count(&self, p_zoom: i32, p_tile_width: i32, p_tile_height: i32) -> i32 {
@@ -101,7 +101,7 @@ impl<'a> ImageInfo<'a> {
         t_file_count += ((p_zoom + 1) * 3) + 4;
         t_file_count += 1;
         t_file_count += 1;
-        return t_file_count;
+        t_file_count
     }
 
     fn initialize_image_info(&mut self) {
@@ -115,27 +115,27 @@ impl<'a> ImageInfo<'a> {
     }
 
     pub fn id(&self) -> String {
-        return self._image.id();
+        self._image.id()
     }
 
     pub fn get_scale_factors(&self) -> Vec<i32> {
-        return self._scale_factors.clone();
+        self._scale_factors.clone()
     }
 
     pub fn get_sizes(&self) -> Vec<(i32,i32)> {
-        return self._sizes.clone();
+        self._sizes.clone()
     }
 
     pub fn get_width(&self) -> i32 {
-        return self._image.get_width();
+        self._image.get_width()
     }
 
     pub fn get_height(&self) -> i32 {
-        return self._image.get_height();
+        self._image.get_height()
     }
 
     pub fn get_tile_width(&self) -> i32 {
-        return self._tile_width;
+        self._tile_width
     }
 
     pub fn set_tile_width(&mut self, p_tile_width: i32) {
@@ -143,7 +143,7 @@ impl<'a> ImageInfo<'a> {
     }
 
     pub fn get_tile_height(&self) -> i32 {
-        return self._tile_height;
+        self._tile_height
     }
 
     pub fn set_tile_height(&mut self, p_tile_height: i32) {
@@ -151,7 +151,7 @@ impl<'a> ImageInfo<'a> {
     }
 
     pub fn get_zoom_level(&self) -> i32 {
-        return self._zoom_levels;
+        self._zoom_levels
     }
 
     pub fn set_zoom_level(&mut self, p_zoom_level: i32) {
@@ -159,7 +159,7 @@ impl<'a> ImageInfo<'a> {
     }
 
     pub fn get_image(&self) -> IIIFImage {
-        return self._image.clone();
+        self._image.clone()
     }
 
     fn set_image(&mut self, p_image: &'a IIIFImage) {

@@ -21,15 +21,15 @@ impl<'a> InfoJSON<'a> {
     }
 
     pub fn id(&self) -> String {
-        return self.uri.clone() + &self.image_info.id();
+        self.uri.clone() + &self.image_info.id()
     }
 
     pub fn width(&self) -> i32 {
-        return self.image_info.get_width()
+        self.image_info.get_width()
     }
 
     pub fn height(&self) -> i32 {
-        return self.image_info.get_height()
+        self.image_info.get_height()
     }
 
     pub fn to_json(&self) -> String {
@@ -64,6 +64,6 @@ impl<'a> InfoJSON<'a> {
         })];
         info_json.insert("tiles".to_string(), Value::Array(tiles_list));
 
-        return serde_json::to_string(&info_json).unwrap();
+        serde_json::to_string(&info_json).unwrap()
     }
 }
