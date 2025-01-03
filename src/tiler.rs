@@ -2,17 +2,17 @@ use core::panic;
 use std::path::PathBuf;
 use std::fs::create_dir_all;
 
-use crate::Info_Json::InfoJSON;
+use crate::Info_Json::{IIIFVersion,InfoJSON};
 use crate::Image_Info::ImageInfo;
 use image::DynamicImage;
 
 pub struct Tiler<'a> {
     image: &'a ImageInfo<'a>,
-    version: &'a str
+    version: &'a IIIFVersion
 }
 
 impl<'a> Tiler<'a> {
-    pub fn new(image: &'a ImageInfo, version: &'a str) -> Tiler<'a> {
+    pub fn new(image: &'a ImageInfo, version: &'a IIIFVersion) -> Tiler<'a> {
         Tiler {
             image,
             version
@@ -42,7 +42,7 @@ impl<'a> Tiler<'a> {
             create_dir_all(t_output_file.parent().unwrap()).unwrap_or_else(|_| panic!("Failed to create directories for {:?}",t_output_file));
             t_scaled_image.save(t_output_file).unwrap();
             if t_size.0 == self.image.get_width() && t_size.1 == self.image.get_height() {
-                let t_size_str = if self.version == "3.0" { "max" } else { "full" };
+                let t_size_str = if *self.version == IIIFVersion::VERSION3 { "max" } else { "full" };
                 let t_output_file = PathBuf::from(format!("{}/full/{}/0/default.jpg", p_image_dir, t_size_str));
                 create_dir_all(t_output_file.parent().unwrap()).unwrap_or_else(|_| panic!("Failed to create directories for {:?}",t_output_file));
                 t_scaled_image.save(t_output_file).unwrap();
@@ -87,7 +87,7 @@ impl<'a> Tiler<'a> {
                         tiled_height_calc = (scaled_tile_height as f32 / scale as f32).ceil() as i32;
                     }
                     
-                    let url = if self.version == "3.0" { 
+                    let url = if *self.version == IIIFVersion::VERSION3 { 
                         // formatting path for v3
                         format!("./{},{},{},{}/{},{}/0/default.jpg", tile_x, tile_y, scaled_tile_width, scaled_tile_height, tiled_width_calc, tiled_height_calc) 
                     } else { 
@@ -133,8 +133,8 @@ impl<'a> Tiler<'a> {
         }
     }
 
-    pub fn create_image(image: ImageInfo, output_dir: &str, uri: &str, version: &str) -> String {
-        let tiler = Tiler::new(&image, version);
+    pub fn create_image(image: ImageInfo, output_dir: &str, uri: &str, version: IIIFVersion) -> String {
+        let tiler = Tiler::new(&image, &version);
         tiler.generate_tiles(output_dir);
         let info = InfoJSON::new(&image, uri, version);
         

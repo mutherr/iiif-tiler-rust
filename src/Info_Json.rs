@@ -6,18 +6,24 @@ use serde_json::{json, Value, Map};
 use crate::Image_Info::ImageInfo;
 
 #[derive(Debug, PartialEq)]
+pub enum IIIFVersion {
+    VERSION3,
+    VERSION211,
+ }
+
+#[derive(Debug, PartialEq)]
 pub struct InfoJSON<'a> {
     image_info: &'a ImageInfo<'a>,
     uri: String,
-    version: String
+    version: IIIFVersion
 }
 
 impl<'a> InfoJSON<'a> {
-    pub fn new(image_info: &'a ImageInfo, uri: &str, version: &str) -> InfoJSON<'a> {
+    pub fn new(image_info: &'a ImageInfo, uri: &str, version: IIIFVersion) -> InfoJSON<'a> {
         InfoJSON {
             image_info,
             uri: uri.to_string(),
-            version: version.to_string()
+            version: version
         }
     }
 
@@ -36,7 +42,7 @@ impl<'a> InfoJSON<'a> {
     pub fn to_json(&self) -> String {
         let mut info_json = Map::new();
 
-        if self.version == "3.0" {
+        if self.version == IIIFVersion::VERSION3 {
             info_json.insert("@context".to_string(), Value::String("http://iiif.io/api/image/3/context.json".to_string()));
             info_json.insert("id".to_string(), Value::String(self.id()));
             info_json.insert("type".to_string(), Value::String("ImageService3".to_string()));

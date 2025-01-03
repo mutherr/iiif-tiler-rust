@@ -1,6 +1,6 @@
 extern crate image;
 mod Info_Json;
-use Info_Json::InfoJSON;
+use Info_Json::IIIFVersion;
 mod Image_Info;
 use Image_Info::ImageInfo;
 mod IIIF_Image;
@@ -15,6 +15,6 @@ fn main() {
 
     let info = ImageInfo::from_image(&img);
 
-    let json = Tiler::create_image(info, "iiif", "brazil", "3.0");
+    let json = Tiler::create_image(info, "iiif", "http://localhost:8887/iiif/", IIIFVersion::VERSION3);
     println!("{}",json);
 }
