@@ -1,9 +1,10 @@
+use core::panic;
 use std::path::PathBuf;
 use std::fs::create_dir_all;
 
 use crate::Info_Json::InfoJSON;
 use crate::Image_Info::ImageInfo;
-use image::{DynamicImage, GenericImageView};
+use image::DynamicImage;
 
 pub struct Tiler<'a> {
     image: &'a ImageInfo<'a>,
@@ -70,25 +71,37 @@ impl<'a> Tiler<'a> {
             //make tiles
             for x in 0..t_tile_num_width {
                 for y in 0..t_tile_num_height {
+                    
                     let tile_x = x * self.image.get_tile_width() * scale;
                     let tile_y = y * self.image.get_tile_height() * scale;
                     let scaled_tile_width = self.image.get_tile_width() * scale;
-                    let tiled_width_calc = self.image.get_tile_width();
+                    let mut tiled_width_calc = self.image.get_tile_width();
                     if tile_x + scaled_tile_width > self.image.get_width() {
                         let scaled_tile_width = self.image.get_width() - tile_x;
-                        let tiled_width_calc = (scaled_tile_width as f32 / scale as f32).ceil() as i32;
+                        tiled_width_calc = (scaled_tile_width as f32 / scale as f32).ceil() as i32;
                     }
                     let scaled_tile_height = self.image.get_tile_height() * scale;
-                    let tiled_height_calc = self.image.get_tile_height();
+                    let mut tiled_height_calc = self.image.get_tile_height();
                     if tile_y + scaled_tile_height > self.image.get_height() {
                         let scaled_tile_height = self.image.get_height() - tile_y;
-                        let tiled_height_calc = (scaled_tile_height as f32 / scale as f32).ceil() as i32;
+                        tiled_height_calc = (scaled_tile_height as f32 / scale as f32).ceil() as i32;
                     }
-                    //TODO: Correct this, the spec for 2.1 is wrong
-                    let url = if self.version == "3.0" { format!("./{},{},{},{}/0/default.jpg", tile_x, tile_y, scaled_tile_width, scaled_tile_height) } else { format!("./{},{},{},{}/0/default.jpg", tile_x, tile_y, scaled_tile_width, scaled_tile_height) };
+                    
+                    let url = if self.version == "3.0" { 
+                        // formatting path for v3
+                        format!("./{},{},{},{}/{},{}/0/default.jpg", tile_x, tile_y, scaled_tile_width, scaled_tile_height, tiled_width_calc, tiled_height_calc) 
+                    } else { 
+                        // formatting path for v2.1
+                        format!("./{},{},{},{}/{},/0/default.jpg", tile_x, tile_y, scaled_tile_width, scaled_tile_height, tiled_width_calc) 
+                    };
 
                     let t_output_file = PathBuf::from(format!("{}/{}", p_image_dir, url));
-                    create_dir_all(t_output_file.parent().unwrap());
+                    if let Some(parent_dir) = t_output_file.parent() {
+                        if let Err(e) = create_dir_all(parent_dir) {
+                            eprintln!("Failed to create directory {}: {}", parent_dir.display(), e);
+                            return
+                        }
+                    }
 
                     let tile_image = self.image.get_image().get_image()
                                     .crop_imm(tile_x as u32, tile_y as u32, scaled_tile_width as u32, scaled_tile_height as u32)
