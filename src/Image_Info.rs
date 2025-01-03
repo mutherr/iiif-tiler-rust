@@ -4,6 +4,7 @@ use crate::IIIF_Image::IIIFImage;
 /**
  * This class provides information on the scale and sizes of the tiles. 
  */
+#[derive(Debug, PartialEq)]
 pub struct ImageInfo<'a>{
     _tile_width: i32,
     _tile_height: i32,
@@ -158,8 +159,8 @@ impl<'a> ImageInfo<'a> {
         self._zoom_levels = p_zoom_level;
     }
 
-    pub fn get_image(&self) -> IIIFImage {
-        self._image.clone()
+    pub fn get_image(&self) -> &IIIFImage {
+        self._image
     }
 
     fn set_image(&mut self, p_image: &'a IIIFImage) {

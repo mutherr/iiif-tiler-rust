@@ -5,6 +5,7 @@ use image::{DynamicImage,ImageReader};
  * This class stores the source image as a DynamicImage and also works out the IIIF image identifier from the filename
  */
 
+ #[derive(Debug, PartialEq)]
 pub struct IIIFImage {
    image: DynamicImage,
    id: String,

@@ -15,8 +15,6 @@ fn main() {
 
     let info = ImageInfo::from_image(&img);
 
-    let json = InfoJSON::new(&info, "test_image/".to_string(), "3.0".to_string());
-
-    let tiler = Tiler::new(&info,"3.0");
-    tiler.generate_tiles("iiif");
+    let json = Tiler::create_image(info, "iiif", "brazil", "3.0");
+    println!("{}",json);
 }

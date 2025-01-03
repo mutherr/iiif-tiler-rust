@@ -113,7 +113,7 @@ impl<'a> Tiler<'a> {
                     } else if tiled_width_calc > 3 && tiled_height_calc > 3 {
                         scaled_image = DynamicImage::ImageRgb8(tile_image).resize(tiled_width_calc as u32, tiled_height_calc as u32, image::imageops::FilterType::Nearest);
                     } else {
-                        scaled_image = scaled_image.resize(tiled_width_calc as u32, tiled_height_calc as u32, image::imageops::FilterType::Nearest);
+                        scaled_image = scaled_image.resize(tiled_width_calc as u32, tiled_height_calc as u32, image::imageops::FilterType::Lanczos3);
                     }
 
                     match scaled_image.save(&t_output_file) {
@@ -136,7 +136,7 @@ impl<'a> Tiler<'a> {
     pub fn create_image(image: ImageInfo, output_dir: &str, uri: &str, version: &str) -> String {
         let tiler = Tiler::new(&image, version);
         tiler.generate_tiles(output_dir);
-        let info = InfoJSON::new(&image, uri.to_string(), version.to_string());
+        let info = InfoJSON::new(&image, uri, version);
         
         info.to_json()
     }

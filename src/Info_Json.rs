@@ -5,6 +5,7 @@ use serde_json::{json, Value, Map};
 
 use crate::Image_Info::ImageInfo;
 
+#[derive(Debug, PartialEq)]
 pub struct InfoJSON<'a> {
     image_info: &'a ImageInfo<'a>,
     uri: String,
@@ -12,16 +13,16 @@ pub struct InfoJSON<'a> {
 }
 
 impl<'a> InfoJSON<'a> {
-    pub fn new(image_info: &'a ImageInfo, uri: String, version: String) -> InfoJSON<'a> {
+    pub fn new(image_info: &'a ImageInfo, uri: &str, version: &str) -> InfoJSON<'a> {
         InfoJSON {
             image_info,
-            uri,
-            version
+            uri: uri.to_string(),
+            version: version.to_string()
         }
     }
 
     pub fn id(&self) -> String {
-        self.uri.clone() + &self.image_info.id()
+        format!("{}{}", self.uri, self.image_info.id())
     }
 
     pub fn width(&self) -> i32 {
