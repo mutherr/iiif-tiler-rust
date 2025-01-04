@@ -11,6 +11,7 @@ use IIIF_Image::IIIFImage;
 mod tiler;
 use tiler::Tiler;
 use serde_json::{to_writer_pretty, Value};
+use anyhow::{Error, Result};
 
 const DEFAULT_URI: &str = "http://localhost:8887/iiif/";
 const DEFAULT_VERSION: &str = "2";
@@ -52,15 +53,18 @@ fn write_manifest(args: &Arguments, info: &ImageInfo, manifest: &String) -> Resu
     Ok(())
 }
 
-fn main() -> std::io::Result<()>{
+fn main() -> Result<()>{
     let args = Arguments::parse();
 
     // determine which IIIF version we're working with
     let iiif_version = match args.iiif_version.as_str() {
         "2" => Ok(IIIFVersion::VERSION211),
         "3" => Ok(IIIFVersion::VERSION3),
-        _ => Err(format!("Unrecognized IIIF version: '{}'. Please provide '2' or '3'.", args.iiif_version.as_str()))
-    };
+        _ => Err(Error::msg(format!(
+            "Unrecognized IIIF version: '{}'. Please provide '2' or '3'.",
+            args.iiif_version)))
+    }?;
+    println!("{:?}", iiif_version);
     println!("{:?}", args);
     // TODO: integrate command arguments with the program itself
 
