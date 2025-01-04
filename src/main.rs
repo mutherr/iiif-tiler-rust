@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::{fs::read_dir, fs::File, path::Path};
 
 use clap::Parser;
 extern crate image;
@@ -46,9 +46,39 @@ struct Arguments {
     output_dir: String,
 }
 
-fn process_image(args: Arguments, iiif_version: IIIFVersion) -> Result<(),Error> {
-    println!{"Loading image from: {}", args.path};
-    let img = IIIFImage::new(args.path.as_str());
+fn process_directory(args: &Arguments, dir_path: &str, iiif_version: &IIIFVersion) -> Result<(),Error> {
+    let dir_path = Path::new(dir_path);
+
+    // Read the directory
+    let entries = read_dir(dir_path)?;
+
+    for entry in entries {
+        let entry = entry?; // Handle `Result<DirEntry, Error>`
+        let path = entry.path();
+
+        // Process only files with valid extensions
+        if path.is_file() && is_image_file(&path) {
+            // Use the path as a string safely
+            if let Some(path_str) = path.to_str() {
+                process_image(args, path_str, iiif_version)?;
+            } else {
+                return Err(Error::msg((format!("Invalid UTF-8 in file path: {:?}", path))))
+            }
+        }
+    }
+    Ok(())
+}
+
+fn is_image_file(path: &Path) -> bool {
+    match path.extension().and_then(|ext| ext.to_str()) {
+        Some(ext) => matches!(ext.to_lowercase().as_str(), "jpg" | "jpeg" | "png" | "bmp" | "tiff"),
+        None => false,
+    }
+}
+
+fn process_image(args: &Arguments, img_path: &str, iiif_version: &IIIFVersion) -> Result<(),Error> {
+    println!{"Loading image from: {}", img_path};
+    let img = IIIFImage::new(img_path);
 
     let info = ImageInfo::new(&img, 
                                         args.tile_size, 
@@ -81,9 +111,18 @@ fn main() -> Result<()>{
             "Unrecognized IIIF version: '{}'. Please provide '2' or '3'.",
             args.iiif_version)))
     }?;
-    println!("{:?}", args);
+    
+    let path = Path::new(args.path.as_str());
 
-    process_image(args, iiif_version)?;
+    if path.is_file() {
+        process_image(&args, args.path.as_str(), &iiif_version)?;
+    } else if path.is_dir() {
+        process_directory(&args, path.to_str().unwrap(), &iiif_version)?;
+    } else {
+        println!("{:?} does not exist or is neither a file nor a directory.", path);
+    }
+
+    
 
     Ok(())
 }

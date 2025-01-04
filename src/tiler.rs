@@ -24,8 +24,9 @@ impl<'a> Tiler<'a> {
         format!("{}/{}", p_image_dir, self.image.id())
     }
 
-    pub fn generate_tiles(&self, image_dir: &str) {
-        self._generate_tiles(image_dir, &self.image.id());
+    pub fn generate_tiles(&self, image_dir: &str) -> Result<(),Error> {
+        self._generate_tiles(image_dir, &self.image.id())?;
+        Ok(())
     }
 
     fn _generate_tiles(&self, image_dir: &str, filename: &str) -> Result<(),Error> {
@@ -147,10 +148,10 @@ impl<'a> Tiler<'a> {
     }
 
     // Tiles a single image, returning the manifest in json form
-    pub fn create_image(image: &ImageInfo, output_dir: &str, uri: &str, version: IIIFVersion) -> Result<String,serde_json::Error> {
+    pub fn create_image(image: &ImageInfo, output_dir: &str, uri: &str, version: &IIIFVersion) -> Result<String,serde_json::Error> {
         let tiler = Tiler::new(image, &version);
         tiler.generate_tiles(output_dir);
-        let info = InfoJSON::new(&image, uri, version);
+        let info = InfoJSON::new(&image, uri, &version);
         
         info.to_json()
     }

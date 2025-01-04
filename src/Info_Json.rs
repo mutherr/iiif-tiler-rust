@@ -21,11 +21,11 @@ pub enum IIIFVersion {
 pub struct InfoJSON<'a> {
     image_info: &'a ImageInfo<'a>,
     uri: String,
-    version: IIIFVersion
+    version: &'a IIIFVersion
 }
 
 impl<'a> InfoJSON<'a> {
-    pub fn new(image_info: &'a ImageInfo, uri: &str, version: IIIFVersion) -> InfoJSON<'a> {
+    pub fn new(image_info: &'a ImageInfo, uri: &str, version: &'a IIIFVersion) -> InfoJSON<'a> {
         InfoJSON {
             image_info,
             uri: uri.to_string(),
