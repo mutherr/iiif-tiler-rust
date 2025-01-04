@@ -54,15 +54,15 @@ impl<'a> InfoJSON<'a> {
         }
 
         info_json.insert("protocol".to_string(), Value::String("http://iiif.io/api/image".to_string()));
-        info_json.insert("width".to_string(), Value::String(serde_json::to_string(&self.width()).unwrap()));
-        info_json.insert("height".to_string(), Value::String(serde_json::to_string(&self.height()).unwrap()));
+        info_json.insert("width".to_string(), Value::Number(self.width().into()));
+        info_json.insert("height".to_string(), Value::Number(self.height().into()));
         let mut sizes_json = Vec::<Value>::new(); 
         for size in self.image_info.get_sizes() {
             let (x,y) = size;
             let size_str = json!({ "height": y, "width": x });
             sizes_json.push(size_str);
         }
-        info_json.insert("sizes".to_string(), Value::String(serde_json::to_string(&sizes_json).unwrap()));
+        info_json.insert("sizes".to_string(), Value::Array(sizes_json));
 
         let tiles_list: Vec<Value> = vec![json!({
             "width": self.image_info.get_tile_width(),
