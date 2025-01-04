@@ -12,24 +12,34 @@ mod tiler;
 use tiler::Tiler;
 use serde_json::{to_writer_pretty, Value};
 
-#[derive(Parser,Default,Debug)]
-#[command(author = "Ryan Muther", version, about="IIIF Image Tiler")]
+const DEFAULT_URI: &str = "http://localhost:8887/iiif/";
+const DEFAULT_VERSION: &str = "2";
+const DEFAULT_ZOOM_LEVELS: i32 = 5;
+const DEFAULT_TILE_SIZE: i32 = 1024;
+const DEFAULT_OUTPUT_DIR: &str = "iiif";
+
+#[derive(Parser, Default, Debug)]
+#[command(author = "Ryan Muther", version, about = "IIIF Image Tiler")]
 struct Arguments {
-    #[arg(help = "Set the identifier in the info.json. Default: http://localhost:8887/iiif/")]
-    #[arg(short, long, default_value="http://localhost:8887/iiif/")]
+    /// Set the identifier in the `info.json`. Default: `http://localhost:8887/iiif/`
+    #[arg(short, long, default_value = DEFAULT_URI)]
     uri: String,
-    #[arg(help = "set the IIIF version, options are 2 or 3. Default: 2.11")]
-    #[arg(short, long, default_value="2")]
+
+    /// Set the IIIF version, options are `2` or `3`. Default: `2`
+    #[arg(short, long, default_value = DEFAULT_VERSION)]
     iiif_version: String,
-    #[arg(help = "Set the number of zoom levels for this image. Default: 5")]
-    #[arg(short, long,default_value_t=5)]
+
+    /// Set the number of zoom levels for this image. Default: `5`
+    #[arg(short, long, default_value_t = DEFAULT_ZOOM_LEVELS)]
     zoom_levels: i32,
-    #[arg(help = "Set the tile size. Default: 1024")]
-    #[arg(short, long, default_value_t=1024)]
+
+    /// Set the tile size. Default: `1024`
+    #[arg(short, long, default_value_t = DEFAULT_TILE_SIZE)]
     tile_size: i32,
-    #[arg(help = "Directory where the IIIF images are stored. Default: iiif")]
-    #[arg(short, long, default_value="iiif")]
-    output_dir: String
+
+    /// Directory where the IIIF images are stored. Default: `iiif`
+    #[arg(short, long, default_value = DEFAULT_OUTPUT_DIR)]
+    output_dir: String,
 }
 
 fn write_manifest(args: &Arguments, info: &ImageInfo, manifest: &String) -> Result<(),std::io::Error> {
