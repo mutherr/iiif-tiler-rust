@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::{error::Error, fs::File};
 
 use clap::Parser;
 extern crate image;
@@ -32,6 +32,16 @@ struct Arguments {
     output_dir: String
 }
 
+fn write_manifest(args: &Arguments, info: &ImageInfo, manifest: &String) -> Result<(),std::io::Error> {
+    let file_path = format!("{}/{}.xml",args.output_dir,info.id());
+    let file = File::create(file_path).expect(format!("Cannot create manifest file",).as_str());
+    let json_manifest: Value = serde_json::from_str(&manifest).expect("Invalid JSON");
+
+    // Write the pretty-printed JSON to the file
+    to_writer_pretty(file, &json_manifest)?;
+    Ok(())
+}
+
 fn main() -> std::io::Result<()>{
     let args = Arguments::parse();
 
@@ -51,16 +61,8 @@ fn main() -> std::io::Result<()>{
 
     let info = ImageInfo::from_image(&img);
 
-    let json = Tiler::create_image(&info, "iiif", "http://localhost:8887/iiif/", IIIFVersion::VERSION3)?;
-    // TODO: Output json file in image's directory with tile folders
-    println!("{}",json);
-    // Open a file to write the pretty-printed JSON
-    let file_path = format!("{}/{}.xml",args.output_dir,info.id());
-    let file = File::create(file_path)?;
-    let json_value: Value = serde_json::from_str(&json).expect("Invalid JSON");
-
-    // Write the pretty-printed JSON to the file
-    to_writer_pretty(file, &json_value)?;
+    let manifest = Tiler::create_image(&info, "iiif", "http://localhost:8887/iiif/", IIIFVersion::VERSION3)?;
+    write_manifest(&args, &info, &manifest)?;
 
     Ok(())
 }
