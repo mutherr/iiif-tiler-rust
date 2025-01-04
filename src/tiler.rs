@@ -111,8 +111,7 @@ impl<'a> Tiler<'a> {
                     let t_output_file = PathBuf::from(format!("{}/{}", p_image_dir, url));
                     if let Some(parent_dir) = t_output_file.parent() {
                         if let Err(e) = create_dir_all(parent_dir) {
-                            eprintln!("Failed to create directory {}: {}", parent_dir.display(), e);
-                            return
+                            eprintln!("Failed to create directory {}: {}", parent_dir.display(), e)
                         }
                     }
 
@@ -132,7 +131,7 @@ impl<'a> Tiler<'a> {
                     match scaled_image.save(&t_output_file) {
                         Ok(_) => {}
                         Err(e) => {
-                            println!(
+                            eprintln!(
                                 "Failed to write: '{:?}' ({},{}) - Error: {}",
                                 t_output_file.display(),
                                 scaled_image.width(),
