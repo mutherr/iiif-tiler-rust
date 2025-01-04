@@ -1,3 +1,5 @@
+use std::fs::File;
+
 use clap::Parser;
 extern crate image;
 mod Info_Json;
@@ -8,6 +10,7 @@ mod IIIF_Image;
 use IIIF_Image::IIIFImage;
 mod tiler;
 use tiler::Tiler;
+use serde_json::{to_writer_pretty, Value};
 
 #[derive(Parser,Default,Debug)]
 #[command(author = "Ryan Muther", version, about="IIIF Image Tiler")]
@@ -29,7 +32,7 @@ struct Arguments {
     output_dir: String
 }
 
-fn main() {
+fn main() -> std::io::Result<()>{
     let args = Arguments::parse();
 
     // determine which IIIF version we're working with
@@ -48,7 +51,16 @@ fn main() {
 
     let info = ImageInfo::from_image(&img);
 
-    let json = Tiler::create_image(info, "iiif", "http://localhost:8887/iiif/", IIIFVersion::VERSION3);
+    let json = Tiler::create_image(&info, "iiif", "http://localhost:8887/iiif/", IIIFVersion::VERSION3);
     // TODO: Output json file in image's directory with tile folders
     println!("{}",json);
+    // Open a file to write the pretty-printed JSON
+    let file_path = format!("{}/{}.xml",args.output_dir,info.id());
+    let file = File::create(file_path)?;
+    let json_value: Value = serde_json::from_str(&json).expect("Invalid JSON");
+
+    // Write the pretty-printed JSON to the file
+    to_writer_pretty(file, &json_value)?;
+
+    Ok(())
 }

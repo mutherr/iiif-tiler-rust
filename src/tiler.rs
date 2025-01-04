@@ -133,8 +133,8 @@ impl<'a> Tiler<'a> {
         }
     }
 
-    pub fn create_image(image: ImageInfo, output_dir: &str, uri: &str, version: IIIFVersion) -> String {
-        let tiler = Tiler::new(&image, &version);
+    pub fn create_image(image: &ImageInfo, output_dir: &str, uri: &str, version: IIIFVersion) -> String {
+        let tiler = Tiler::new(image, &version);
         tiler.generate_tiles(output_dir);
         let info = InfoJSON::new(&image, uri, version);
         
