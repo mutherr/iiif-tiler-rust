@@ -33,10 +33,6 @@ impl IIIFImage {
       self.id.clone()
    }
 
-   pub fn set_id(&mut self, p_id: String) {
-      self.id = p_id;
-   }
-
    pub fn get_width(&self) -> i32 {
       self.image.width() as i32
    }
@@ -47,10 +43,6 @@ impl IIIFImage {
 
    pub fn get_image(&self) -> DynamicImage {
       self.image.clone()
-   }
-
-   pub fn set_image(&mut self, p_image: DynamicImage) {
-      self.image = p_image;
    }
 
 }
