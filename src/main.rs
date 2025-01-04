@@ -2,13 +2,13 @@ use std::{fs::read_dir, fs::File, path::Path};
 
 use clap::Parser;
 extern crate image;
-mod Info_Json;
+pub mod Info_Json;
 use Info_Json::IIIFVersion;
-mod Image_Info;
+pub mod Image_Info;
 use Image_Info::ImageInfo;
-mod IIIF_Image;
+pub mod IIIF_Image;
 use IIIF_Image::IIIFImage;
-mod tiler;
+pub mod tiler;
 use tiler::Tiler;
 use serde_json::{to_writer_pretty, Value};
 use anyhow::{Error, Result};
@@ -62,7 +62,7 @@ fn process_directory(args: &Arguments, dir_path: &str, iiif_version: &IIIFVersio
             if let Some(path_str) = path.to_str() {
                 process_image(args, path_str, iiif_version)?;
             } else {
-                return Err(Error::msg((format!("Invalid UTF-8 in file path: {:?}", path))))
+                return Err(Error::msg(format!("Invalid UTF-8 in file path: {:?}", path)))
             }
         }
     }

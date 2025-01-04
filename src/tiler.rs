@@ -1,11 +1,10 @@
-use core::panic;
 use std::path::{Path, PathBuf};
 use std::fs::create_dir_all;
 
 use crate::Info_Json::{IIIFVersion,InfoJSON};
 use crate::Image_Info::ImageInfo;
 use anyhow::{Error, Result};
-use image::{DynamicImage, ImageError};
+use image::DynamicImage;
 
 pub struct Tiler<'a> {
     image: &'a ImageInfo<'a>,
@@ -148,12 +147,17 @@ impl<'a> Tiler<'a> {
     }
 
     // Tiles a single image, returning the manifest in json form
-    pub fn create_image(image: &ImageInfo, output_dir: &str, uri: &str, version: &IIIFVersion) -> Result<String,serde_json::Error> {
+    pub fn create_image(image: &ImageInfo, output_dir: &str, uri: &str, version: &IIIFVersion) -> Result<String,Error> {
         let tiler = Tiler::new(image, &version);
-        tiler.generate_tiles(output_dir);
+        match tiler.generate_tiles(output_dir) {
+            Ok(_) => {}
+            Err(e) => {
+                return Err(Error::msg(format!("Failed to generate tiles: {}", e)))
+            }
+        }
         let info = InfoJSON::new(&image, uri, &version);
         
-        info.to_json()
+        Ok(info.to_json()?)
     }
 
 }
