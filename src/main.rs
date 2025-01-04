@@ -51,7 +51,7 @@ fn main() -> std::io::Result<()>{
 
     let info = ImageInfo::from_image(&img);
 
-    let json = Tiler::create_image(&info, "iiif", "http://localhost:8887/iiif/", IIIFVersion::VERSION3);
+    let json = Tiler::create_image(&info, "iiif", "http://localhost:8887/iiif/", IIIFVersion::VERSION3)?;
     // TODO: Output json file in image's directory with tile folders
     println!("{}",json);
     // Open a file to write the pretty-printed JSON

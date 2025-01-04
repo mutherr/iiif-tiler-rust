@@ -133,7 +133,8 @@ impl<'a> Tiler<'a> {
         }
     }
 
-    pub fn create_image(image: &ImageInfo, output_dir: &str, uri: &str, version: IIIFVersion) -> String {
+    // Tiles a single image, returning the manifest in json form
+    pub fn create_image(image: &ImageInfo, output_dir: &str, uri: &str, version: IIIFVersion) -> Result<String,serde_json::Error> {
         let tiler = Tiler::new(image, &version);
         tiler.generate_tiles(output_dir);
         let info = InfoJSON::new(&image, uri, version);
