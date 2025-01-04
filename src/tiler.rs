@@ -5,7 +5,7 @@ use std::fs::create_dir_all;
 use crate::Info_Json::{IIIFVersion,InfoJSON};
 use crate::Image_Info::ImageInfo;
 use anyhow::{Error, Result};
-use image::DynamicImage;
+use image::{DynamicImage, ImageError};
 
 pub struct Tiler<'a> {
     image: &'a ImageInfo<'a>,
@@ -24,15 +24,16 @@ impl<'a> Tiler<'a> {
         format!("{}/{}", p_image_dir, self.image.id())
     }
 
-    pub fn generate_tiles(&self, p_image_dir: &str) {
-        self._generate_tiles(p_image_dir, &self.image.id());
+    pub fn generate_tiles(&self, image_dir: &str) {
+        self._generate_tiles(image_dir, &self.image.id());
     }
 
-    fn _generate_tiles(&self, p_image_dir: &str, p_filename: &str) {
-        let t_img_dir = format!("{}/{}", p_image_dir, p_filename);
+    fn _generate_tiles(&self, image_dir: &str, filename: &str) -> Result<(),Error> {
+        let img_dir = format!("{}/{}", image_dir, filename);
         println!("Using image info {}", self.image);
-        self._generate_sizes(&t_img_dir);
-        self._generate_scale_tiles(&t_img_dir);
+        self._generate_sizes(&img_dir)?;
+        self._generate_scale_tiles(&img_dir)?;
+        Ok(())
     }
 
     fn _generate_sizes(&self, image_dir: &str) -> Result<(),Error> {
@@ -63,7 +64,7 @@ impl<'a> Tiler<'a> {
         Ok(())
     }
 
-    fn _generate_scale_tiles(&self, p_image_dir: &str) {
+    fn _generate_scale_tiles(&self, p_image_dir: &str) -> Result<(),Error> {
         for scale in self.image.get_scale_factors() {
             //height in units of scale rather than px
             let t_scale_level_width = (self.image.get_width() as f32 / scale as f32).floor() as i32;
@@ -143,6 +144,7 @@ impl<'a> Tiler<'a> {
                 }
             }
         }
+        Ok(())
     }
 
     // Tiles a single image, returning the manifest in json form
