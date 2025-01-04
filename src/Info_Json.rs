@@ -39,38 +39,44 @@ impl<'a> InfoJSON<'a> {
         self.image_info.get_height()
     }
 
-    pub fn to_json(&self) -> String {
+    pub fn to_json(&self) -> Result<String, serde_json::Error> {
         let mut info_json = Map::new();
 
-        if self.version == IIIFVersion::VERSION3 {
-            info_json.insert("@context".to_string(), Value::String("http://iiif.io/api/image/3/context.json".to_string()));
-            info_json.insert("id".to_string(), Value::String(self.id()));
-            info_json.insert("type".to_string(), Value::String("ImageService3".to_string()));
-            info_json.insert("profile".to_string(), Value::String("level0".to_string()));
-        } else {
-            info_json.insert("@context".to_string(), Value::String("http://iiif.io/api/image/2/context.json".to_string()));
-            info_json.insert("id".to_string(), Value::String(self.id()));
-            info_json.insert("profile".to_string(), Value::String("http://iiif.io/api/image/2/level0.json".to_string()));
+        match self.version {
+            IIIFVersion::VERSION3 => {
+                info_json.insert("@context".to_owned(), Value::String("http://iiif.io/api/image/3/context.json".to_owned()));
+                info_json.insert("id".to_owned(), Value::String(self.id()));
+                info_json.insert("type".to_owned(), Value::String("ImageService3".to_string()));
+                info_json.insert("profile".to_owned(), Value::String("level0".to_string())); 
+            } 
+            IIIFVersion::VERSION211 => {
+                info_json.insert("@context".to_owned(), Value::String("http://iiif.io/api/image/2/context.json".to_owned()));
+                info_json.insert("id".to_owned(), Value::String(self.id()));
+                info_json.insert("profile".to_owned(), Value::String("http://iiif.io/api/image/2/level0.json".to_owned()));
+            }
         }
 
-        info_json.insert("protocol".to_string(), Value::String("http://iiif.io/api/image".to_string()));
-        info_json.insert("width".to_string(), Value::Number(self.width().into()));
-        info_json.insert("height".to_string(), Value::Number(self.height().into()));
-        let mut sizes_json = Vec::<Value>::new(); 
-        for size in self.image_info.get_sizes() {
-            let (x,y) = size;
-            let size_str = json!({ "height": y, "width": x });
-            sizes_json.push(size_str);
-        }
-        info_json.insert("sizes".to_string(), Value::Array(sizes_json));
+        info_json.insert("protocol".to_owned(), Value::String("http://iiif.io/api/image".to_owned()));
+        info_json.insert("width".to_owned(), Value::Number(self.width().into()));
+        info_json.insert("height".to_owned(), Value::Number(self.height().into()));
+        
+        // Add sizes
+        let sizes_json: Vec<Value> = self
+            .image_info
+            .get_sizes()
+            .iter()
+            .map(|&(x, y)| json!({ "height": y, "width": x }))
+            .collect();
+        info_json.insert("sizes".to_owned(), Value::Array(sizes_json));
 
-        let tiles_list: Vec<Value> = vec![json!({
+        // Add tiles
+        let tiles_json = vec![json!({
             "width": self.image_info.get_tile_width(),
             "height": self.image_info.get_tile_height(),
             "scaleFactors": self.image_info.get_scale_factors()
         })];
-        info_json.insert("tiles".to_string(), Value::Array(tiles_list));
+        info_json.insert("tiles".to_owned(), Value::Array(tiles_json));
 
-        serde_json::to_string(&info_json).unwrap()
+        serde_json::to_string(&info_json)
     }
 }
