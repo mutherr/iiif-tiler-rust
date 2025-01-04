@@ -1,4 +1,4 @@
-use std::{error::Error, fs::File};
+use std::fs::File;
 
 use clap::Parser;
 extern crate image;
@@ -56,12 +56,11 @@ fn main() -> std::io::Result<()>{
     let args = Arguments::parse();
 
     // determine which IIIF version we're working with
-    let mut iiif_version ;
-    match args.iiif_version.as_str() {
-        "2" => {iiif_version = IIIFVersion::VERSION211}
-        "3" => {iiif_version = IIIFVersion::VERSION3}
-        _ => {panic!("Unrecognized IIIF version. Please provide 2 or 3")}
-    }
+    let iiif_version = match args.iiif_version.as_str() {
+        "2" => Ok(IIIFVersion::VERSION211),
+        "3" => Ok(IIIFVersion::VERSION3),
+        _ => Err(format!("Unrecognized IIIF version: '{}'. Please provide '2' or '3'.", args.iiif_version.as_str()))
+    };
     println!("{:?}", args);
     // TODO: integrate command arguments with the program itself
 
