@@ -16,10 +16,20 @@ fn test_version_2_json() {
     assert_eq!(parsed["id"], "http://localhost:8887/iiif/test");
     assert_eq!(parsed["profile"], "http://iiif.io/api/image/2/level0.json");
     assert_eq!(parsed["protocol"], "http://iiif.io/api/image");
+
+    // check image dimensions
     assert_eq!(parsed["width"], 9480);
     assert_eq!(parsed["height"], 6147);
-    assert_eq!(parsed["sizes"][0]["height"], 192);
-    assert_eq!(parsed["sizes"][0]["width"], 296);
+
+    // check sizes
+    let expected_sizes = vec![(192, 296),(384,592),(768,1185),(1536,2370),(3073,4740),(6147,9480)];
+    let iter = parsed["sizes"].as_array().unwrap().iter().zip(expected_sizes.iter());
+    for (size, expected) in iter {
+        assert_eq!(size["height"], expected.0);
+        assert_eq!(size["width"], expected.1);
+    }
+
+    // check tiles
     assert_eq!(parsed["tiles"][0]["width"], 1024);
     assert_eq!(parsed["tiles"][0]["height"], 1024);
     let scale_factors = parsed["tiles"][0]["scaleFactors"]
@@ -43,10 +53,20 @@ fn test_version_3_json() {
     assert_eq!(parsed["type"], "ImageService3");
     assert_eq!(parsed["profile"], "level0");
     assert_eq!(parsed["protocol"], "http://iiif.io/api/image");
+
+    // check image dimensions
     assert_eq!(parsed["width"], 9480);
     assert_eq!(parsed["height"], 6147);
-    assert_eq!(parsed["sizes"][0]["height"], 192);
-    assert_eq!(parsed["sizes"][0]["width"], 296);
+
+    // check sizes
+    let expected_sizes = vec![(192, 296),(384,592),(768,1185),(1536,2370),(3073,4740),(6147,9480)];
+    let iter = parsed["sizes"].as_array().unwrap().iter().zip(expected_sizes.iter());
+    for (size, expected) in iter {
+        assert_eq!(size["height"], expected.0);
+        assert_eq!(size["width"], expected.1);
+    }
+
+    // check tiles
     assert_eq!(parsed["tiles"][0]["width"], 1024);
     assert_eq!(parsed["tiles"][0]["height"], 1024);
     let scale_factors = parsed["tiles"][0]["scaleFactors"]
