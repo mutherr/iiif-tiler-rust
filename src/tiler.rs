@@ -4,6 +4,7 @@ use std::fs::create_dir_all;
 
 use crate::Info_Json::{IIIFVersion,InfoJSON};
 use crate::Image_Info::ImageInfo;
+use anyhow::{Error, Result};
 use image::DynamicImage;
 
 pub struct Tiler<'a> {
@@ -34,23 +35,34 @@ impl<'a> Tiler<'a> {
         self._generate_scale_tiles(&t_img_dir);
     }
 
-    fn _generate_sizes(&self, p_image_dir: &str) {
-        for t_size in self.image.get_sizes() {
-            let t_size_str = format!("{},{}", t_size.0, t_size.1);
-            let t_scaled_image = self.image.get_image().get_image().resize(t_size.0 as u32, t_size.1 as u32, image::imageops::FilterType::Nearest);
-            let t_output_file = PathBuf::from(format!("{}/full/{}/0/default.jpg", p_image_dir, t_size_str));
-            create_dir_all(t_output_file.parent().unwrap()).unwrap_or_else(|_| panic!("Failed to create directories for {:?}",t_output_file));
-            t_scaled_image.save(t_output_file).unwrap();
-            if t_size.0 == self.image.get_width() && t_size.1 == self.image.get_height() {
-                let t_size_str = if *self.version == IIIFVersion::VERSION3 { "max" } else { "full" };
-                let t_output_file = PathBuf::from(format!("{}/full/{}/0/default.jpg", p_image_dir, t_size_str));
-                create_dir_all(t_output_file.parent().unwrap()).unwrap_or_else(|_| panic!("Failed to create directories for {:?}",t_output_file));
-                t_scaled_image.save(t_output_file).unwrap();
-            }
+    fn _generate_sizes(&self, image_dir: &str) -> Result<(),Error> {
+        for size in self.image.get_sizes() {
+            let size_str = format!("{},{}", size.0, size.1);
+            let scaled_image = self
+                .image
+                .get_image()
+                .get_image()
+                .resize(size.0 as u32, size.1 as u32, image::imageops::FilterType::Nearest);
+
+            let output_path = PathBuf::from(image_dir)
+                .join("full")
+                .join(size_str)
+                .join("0")
+                .join("default.jpg");
+            save_image(&scaled_image, &output_path)?;
+            if size.0 == self.image.get_width() && size.1 == self.image.get_height() {
+                let max_full_str = if *self.version == IIIFVersion::VERSION3 { "max" } else { "full" };
+                let max_output_path = PathBuf::from(image_dir)
+                    .join("full")
+                    .join(max_full_str)
+                    .join("0")
+                    .join("default.jpg");
+                save_image(&scaled_image, &max_output_path)?;
+            }    
         }
+        Ok(())
     }
 
-    //TODO: this doesn't do all the same stuff as the java version. Examine more closely in future
     fn _generate_scale_tiles(&self, p_image_dir: &str) {
         for scale in self.image.get_scale_factors() {
             //height in units of scale rather than px
@@ -142,6 +154,24 @@ impl<'a> Tiler<'a> {
         info.to_json()
     }
 
+}
+
+fn save_image(image: &DynamicImage, path: &PathBuf) -> Result<(), ImageError> {
+    if let Some(parent_dir) = path.parent() {
+        create_dir_all(parent_dir).map_err(|e| {
+            ImageError::IoError(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to create directory: {:?}", parent_dir),
+            ))
+        })?;
+    }
+
+    image.save(path).map_err(|e| {
+        ImageError::IoError(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("Failed to save image to: {:?}", path),
+        ))
+    })
 }
 
 

@@ -138,21 +138,12 @@ impl<'a> ImageInfo<'a> {
         self._tile_height = p_tile_height;
     }
 
-    pub fn get_zoom_level(&self) -> i32 {
-        self._zoom_levels
-    }
-
     pub fn set_zoom_level(&mut self, p_zoom_level: i32) {
         self._zoom_levels = p_zoom_level;
     }
 
     pub fn get_image(&self) -> &IIIFImage {
         self._image
-    }
-
-    fn set_image(&mut self, p_image: &'a IIIFImage) {
-        self._image = p_image;
-        self.initialize_image_info();
     }
 }
 
