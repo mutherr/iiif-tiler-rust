@@ -46,9 +46,9 @@ fn main() -> std::io::Result<()>{
     let args = Arguments::parse();
 
     // determine which IIIF version we're working with
-    let mut iiif_version = IIIFVersion::VERSION211;
+    let mut iiif_version ;
     match args.iiif_version.as_str() {
-        "2" => {}
+        "2" => {iiif_version = IIIFVersion::VERSION211}
         "3" => {iiif_version = IIIFVersion::VERSION3}
         _ => {panic!("Unrecognized IIIF version. Please provide 2 or 3")}
     }
