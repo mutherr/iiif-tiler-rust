@@ -1,5 +1,5 @@
 use core::panic;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::fs::create_dir_all;
 
 use crate::Info_Json::{IIIFVersion,InfoJSON};
@@ -157,21 +157,16 @@ impl<'a> Tiler<'a> {
 
 }
 
-fn save_image(image: &DynamicImage, path: &PathBuf) -> Result<(), ImageError> {
+// helper function for image saving
+fn save_image(image: &DynamicImage, path: &Path) -> Result<(), Error> {
     if let Some(parent_dir) = path.parent() {
-        create_dir_all(parent_dir).map_err(|e| {
-            ImageError::IoError(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Failed to create directory: {:?}", parent_dir),
-            ))
+        create_dir_all(parent_dir).map_err(|_e| {
+            Error::msg(format!("Failed to create directory: {:?}", parent_dir))
         })?;
     }
 
-    image.save(path).map_err(|e| {
-        ImageError::IoError(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("Failed to save image to: {:?}", path),
-        ))
+    image.save(path).map_err(|_e| {
+        Error::msg(format!("Failed to save image: {:?}", path))
     })
 }
 
