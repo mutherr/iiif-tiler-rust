@@ -22,6 +22,9 @@ const DEFAULT_OUTPUT_DIR: &str = "iiif";
 #[derive(Parser, Default, Debug)]
 #[command(author = "Ryan Muther", version, about = "IIIF Image Tiler")]
 struct Arguments {
+    /// The file or directory path to the image(s) to be processed
+    path: String,
+
     /// Set the identifier in the `info.json`. Default: `http://localhost:8887/iiif/`
     #[arg(short, long, default_value = DEFAULT_URI)]
     uri: String,
@@ -43,7 +46,21 @@ struct Arguments {
     output_dir: String,
 }
 
-fn write_manifest(args: &Arguments, info: &ImageInfo, manifest: &String) -> Result<(),std::io::Error> {
+fn process_image(args: Arguments, iiif_version: IIIFVersion) -> Result<(),Error> {
+    println!{"Loading image from: {}", args.path};
+    let img = IIIFImage::new(args.path.as_str());
+
+    let info = ImageInfo::new(&img, 
+                                        args.tile_size, 
+                                       args.tile_size, 
+                                        args.zoom_levels);
+
+    let manifest = Tiler::create_image(&info, &args.output_dir, "http://localhost:8887/iiif/", iiif_version)?;
+    write_manifest(&args, &info, &manifest)?;
+    Ok(())
+}
+
+fn write_manifest(args: &Arguments, info: &ImageInfo, manifest: &String) -> Result<(),Error> {
     let file_path = format!("{}/{}.xml",args.output_dir,info.id());
     let file = File::create(file_path).expect(format!("Cannot create manifest file",).as_str());
     let json_manifest: Value = serde_json::from_str(&manifest).expect("Invalid JSON");
@@ -64,18 +81,9 @@ fn main() -> Result<()>{
             "Unrecognized IIIF version: '{}'. Please provide '2' or '3'.",
             args.iiif_version)))
     }?;
-    println!("{:?}", iiif_version);
     println!("{:?}", args);
-    // TODO: integrate command arguments with the program itself
 
-    let test_path = "src/test/brazil.jpg";
-    println!{"Loading image from: {}", test_path};
-    let img = IIIFImage::new(test_path);
-
-    let info = ImageInfo::from_image(&img);
-
-    let manifest = Tiler::create_image(&info, "iiif", "http://localhost:8887/iiif/", IIIFVersion::VERSION3)?;
-    write_manifest(&args, &info, &manifest)?;
+    process_image(args, iiif_version)?;
 
     Ok(())
 }

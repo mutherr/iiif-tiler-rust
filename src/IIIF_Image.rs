@@ -1,4 +1,5 @@
 use std::{fs::File, io::BufReader, path::Path};
+use anyhow::Error;
 use image::{DynamicImage,ImageReader};
 
 /**
@@ -64,21 +65,27 @@ impl Clone for IIIFImage {
    }
 }
 
-fn load_image(img_path: &str) -> Result<(DynamicImage, String),Box<dyn std::error::Error>> {
+fn load_image(img_path: &str) -> Result<(DynamicImage, String),Error> {
+   // open the file and create a buffered reader
    let file = File::open(img_path)?;
    let reader = BufReader::new(file);
-   // discard alpha channel if it exists
+
+   // read in the image and convert it to rbg8
    let img = ImageReader::new(reader).with_guessed_format()?.decode()?.into_rgb8();
    let rgb_img = DynamicImage::ImageRgb8(img);
 
+   // extract the file name as the image id
    let file_path = Path::new(img_path);
-   let mut image_id = "";
-   // Get the file name (last part of the path)
-   if let Some(file_name) = file_path.file_stem() {
-      image_id = file_name.to_str().unwrap();
-   } else {
-      println!("Could not extract the file name.");
-   }
+   let image_id = file_path
+        .file_stem()
+        .and_then(|file_name| file_name.to_str())
+        .map(|file_name| file_name.to_string())
+        .ok_or_else(|| {
+         Error::msg(format!(
+             "Failed to extract file name from path: {}",
+             file_path.display()
+         ))
+     })?;
 
    Ok((rgb_img, image_id.to_string()))
 }

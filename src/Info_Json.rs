@@ -1,4 +1,3 @@
-use clap::ValueEnum;
 /**
  * This class generates the IIIF info.json for an image
  */
@@ -6,11 +5,9 @@ use serde_json::{json, Value, Map};
 
 use crate::Image_Info::ImageInfo;
 
-#[derive(ValueEnum, Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq)]
 pub enum IIIFVersion {
-    #[value(alias = "3")]
     VERSION3,
-    #[value(alias = "2")]
     VERSION211,
  }
 

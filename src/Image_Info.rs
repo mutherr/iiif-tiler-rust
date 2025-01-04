@@ -15,19 +15,6 @@ pub struct ImageInfo<'a>{
 }
 
 impl<'a> ImageInfo<'a> {
-    pub fn from_image(image: &'a IIIFImage) -> Self {
-        let mut info = ImageInfo {
-            _image:image,
-            _tile_width:1024,
-            _tile_height:1024,
-            _zoom_levels:5,
-            _scale_factors: Vec::new(),
-            _sizes: Vec::new()
-        };
-        info.initialize_image_info();
-        info
-    }
-
     pub fn new(image: &'a IIIFImage, tile_width: i32, tile_height: i32, zoom_level: i32) -> Self {
         let mut info = ImageInfo {
             _image:image,
