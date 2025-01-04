@@ -25,7 +25,7 @@ struct Arguments {
     /// The file or directory path to the image(s) to be processed
     path: String,
 
-    /// Set the identifier in the `info.json`. Default: `http://localhost:8887/iiif/`
+    /// Set the identifier in the mainfest. Default: `http://localhost:8887/iiif/`
     #[arg(short, long, default_value = DEFAULT_URI)]
     uri: String,
 
@@ -41,7 +41,7 @@ struct Arguments {
     #[arg(short, long, default_value_t = DEFAULT_TILE_SIZE)]
     tile_size: i32,
 
-    /// Directory where the IIIF images are stored. Default: `iiif`
+    /// Directory where the image tiles are stored. Default: `iiif`
     #[arg(short, long, default_value = DEFAULT_OUTPUT_DIR)]
     output_dir: String,
 }
