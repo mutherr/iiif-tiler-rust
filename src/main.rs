@@ -9,9 +9,9 @@ use Image_Info::ImageInfo;
 pub mod IIIF_Image;
 use IIIF_Image::IIIFImage;
 pub mod tiler;
-use tiler::Tiler;
-use serde_json::{to_writer_pretty, Value};
 use anyhow::{Error, Result};
+use serde_json::{to_writer_pretty, Value};
+use tiler::Tiler;
 
 const DEFAULT_URI: &str = "http://localhost:8887/iiif/";
 const DEFAULT_VERSION: &str = "2";
@@ -46,7 +46,11 @@ struct Arguments {
     output_dir: String,
 }
 
-fn process_directory(args: &Arguments, dir_path: &str, iiif_version: &IIIFVersion) -> Result<(),Error> {
+fn process_directory(
+    args: &Arguments,
+    dir_path: &str,
+    iiif_version: &IIIFVersion,
+) -> Result<(), Error> {
     let dir_path = Path::new(dir_path);
 
     // Read the directory
@@ -62,7 +66,10 @@ fn process_directory(args: &Arguments, dir_path: &str, iiif_version: &IIIFVersio
             if let Some(path_str) = path.to_str() {
                 process_image(args, path_str, iiif_version)?;
             } else {
-                return Err(Error::msg(format!("Invalid UTF-8 in file path: {:?}", path)))
+                return Err(Error::msg(format!(
+                    "Invalid UTF-8 in file path: {:?}",
+                    path
+                )));
             }
         }
     }
@@ -71,27 +78,36 @@ fn process_directory(args: &Arguments, dir_path: &str, iiif_version: &IIIFVersio
 
 fn is_image_file(path: &Path) -> bool {
     match path.extension().and_then(|ext| ext.to_str()) {
-        Some(ext) => matches!(ext.to_lowercase().as_str(), "jpg" | "jpeg" | "png" | "bmp" | "tiff"),
+        Some(ext) => matches!(
+            ext.to_lowercase().as_str(),
+            "jpg" | "jpeg" | "png" | "bmp" | "tiff"
+        ),
         None => false,
     }
 }
 
-fn process_image(args: &Arguments, img_path: &str, iiif_version: &IIIFVersion) -> Result<(),Error> {
-    println!{"Loading image from: {}", img_path};
+fn process_image(
+    args: &Arguments,
+    img_path: &str,
+    iiif_version: &IIIFVersion,
+) -> Result<(), Error> {
+    println! {"Loading image from: {}", img_path};
     let img = IIIFImage::new(img_path);
 
-    let info = ImageInfo::new(&img, 
-                                        args.tile_size, 
-                                       args.tile_size, 
-                                        args.zoom_levels);
+    let info = ImageInfo::new(&img, args.tile_size, args.tile_size, args.zoom_levels);
 
-    let manifest = Tiler::create_image(&info, &args.output_dir, "http://localhost:8887/iiif/", iiif_version)?;
+    let manifest = Tiler::create_image(
+        &info,
+        &args.output_dir,
+        "http://localhost:8887/iiif/",
+        iiif_version,
+    )?;
     write_manifest(&args, &info, &manifest)?;
     Ok(())
 }
 
-fn write_manifest(args: &Arguments, info: &ImageInfo, manifest: &String) -> Result<(),Error> {
-    let file_path = format!("{}/{}.xml",args.output_dir,info.id());
+fn write_manifest(args: &Arguments, info: &ImageInfo, manifest: &String) -> Result<(), Error> {
+    let file_path = format!("{}/{}.xml", args.output_dir, info.id());
     let file = File::create(file_path).expect(format!("Cannot create manifest file",).as_str());
     let json_manifest: Value = serde_json::from_str(&manifest).expect("Invalid JSON");
 
@@ -100,7 +116,7 @@ fn write_manifest(args: &Arguments, info: &ImageInfo, manifest: &String) -> Resu
     Ok(())
 }
 
-fn main() -> Result<()>{
+fn main() -> Result<()> {
     let args = Arguments::parse();
 
     // determine which IIIF version we're working with
@@ -109,9 +125,10 @@ fn main() -> Result<()>{
         "3" => Ok(IIIFVersion::VERSION3),
         _ => Err(Error::msg(format!(
             "Unrecognized IIIF version: '{}'. Please provide '2' or '3'.",
-            args.iiif_version)))
+            args.iiif_version
+        ))),
     }?;
-    
+
     let path = Path::new(args.path.as_str());
 
     if path.is_file() {
@@ -119,10 +136,11 @@ fn main() -> Result<()>{
     } else if path.is_dir() {
         process_directory(&args, path.to_str().unwrap(), &iiif_version)?;
     } else {
-        println!("{:?} does not exist or is neither a file nor a directory.", path);
+        println!(
+            "{:?} does not exist or is neither a file nor a directory.",
+            path
+        );
     }
-
-    
 
     Ok(())
 }
