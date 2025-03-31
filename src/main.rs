@@ -108,8 +108,8 @@ fn process_image(
 
 fn write_manifest(args: &Arguments, info: &ImageInfo, manifest: &str) -> Result<(), Error> {
     let file_path = format!("{}/{}.xml", args.output_dir, info.id());
-    let file = File::create(file_path).expect(format!("Cannot create manifest file",).as_str());
-    let json_manifest: Value = serde_json::from_str(manifest).expect("Invalid JSON");
+    let file = File::create(file_path)?;
+    let json_manifest: Value = serde_json::from_str(manifest)?;
 
     // Write the pretty-printed JSON to the file
     to_writer_pretty(file, &json_manifest)?;
