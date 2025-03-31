@@ -25,23 +25,23 @@ struct Arguments {
     /// The file or directory path to the image(s) to be processed
     path: String,
 
-    /// Set the identifier in the mainfest. Default: `http://localhost:8887/iiif/`
+    /// Set the identifier in the mainfest.
     #[arg(short, long, default_value = DEFAULT_URI)]
     uri: String,
 
-    /// Set the IIIF version, options are `2` or `3`. Default: `2`
+    /// Set the IIIF version, options are `2` or `3`.
     #[arg(short, long, default_value = DEFAULT_VERSION)]
     iiif_version: String,
 
-    /// Set the number of zoom levels for this image. Default: `5`
+    /// Set the number of zoom levels for this image.
     #[arg(short, long, default_value_t = DEFAULT_ZOOM_LEVELS)]
     zoom_levels: i32,
 
-    /// Set the tile size. Default: `1024`
+    /// Set the tile size.
     #[arg(short, long, default_value_t = DEFAULT_TILE_SIZE)]
     tile_size: i32,
 
-    /// Directory where the image tiles are stored. Default: `iiif`
+    /// Directory where the image tiles are stored.
     #[arg(short, long, default_value = DEFAULT_OUTPUT_DIR)]
     output_dir: String,
 }
