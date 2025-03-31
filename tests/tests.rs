@@ -29,7 +29,7 @@ fn test_version_2_json() {
     assert_eq!(parsed["height"], 6147);
 
     // check sizes
-    let expected_sizes = vec![
+    let expected_sizes = [
         (192, 296),
         (384, 592),
         (768, 1185),
@@ -80,7 +80,7 @@ fn test_version_3_json() {
     assert_eq!(parsed["height"], 6147);
 
     // check sizes
-    let expected_sizes = vec![
+    let expected_sizes = [
         (192, 296),
         (384, 592),
         (768, 1185),
