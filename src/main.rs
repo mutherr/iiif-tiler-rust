@@ -96,12 +96,7 @@ fn process_image(
 
     let info = ImageInfo::new(&img, args.tile_size, args.tile_size, args.zoom_levels);
 
-    let manifest = Tiler::create_image(
-        &info,
-        &args.output_dir,
-        "http://localhost:8887/iiif/",
-        iiif_version,
-    )?;
+    let manifest = Tiler::create_image(&info, &args.output_dir, &args.uri, iiif_version)?;
     write_manifest(args, &info, &manifest)?;
     Ok(())
 }
