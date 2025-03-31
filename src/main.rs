@@ -2,12 +2,12 @@ use std::{fs::read_dir, fs::File, path::Path};
 
 use clap::Parser;
 extern crate image;
-pub mod Info_Json;
-use Info_Json::IIIFVersion;
-pub mod Image_Info;
-use Image_Info::ImageInfo;
-pub mod IIIF_Image;
-use IIIF_Image::IIIFImage;
+pub mod info_json;
+use info_json::IIIFVersion;
+pub mod image_info;
+use image_info::ImageInfo;
+pub mod iiif_image;
+use iiif_image::IIIFImage;
 pub mod tiler;
 use anyhow::{Error, Result};
 use serde_json::{to_writer_pretty, Value};
@@ -102,14 +102,14 @@ fn process_image(
         "http://localhost:8887/iiif/",
         iiif_version,
     )?;
-    write_manifest(&args, &info, &manifest)?;
+    write_manifest(args, &info, &manifest)?;
     Ok(())
 }
 
-fn write_manifest(args: &Arguments, info: &ImageInfo, manifest: &String) -> Result<(), Error> {
+fn write_manifest(args: &Arguments, info: &ImageInfo, manifest: &str) -> Result<(), Error> {
     let file_path = format!("{}/{}.xml", args.output_dir, info.id());
     let file = File::create(file_path).expect(format!("Cannot create manifest file",).as_str());
-    let json_manifest: Value = serde_json::from_str(&manifest).expect("Invalid JSON");
+    let json_manifest: Value = serde_json::from_str(manifest).expect("Invalid JSON");
 
     // Write the pretty-printed JSON to the file
     to_writer_pretty(file, &json_manifest)?;

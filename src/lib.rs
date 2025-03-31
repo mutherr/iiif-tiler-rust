@@ -1,4 +1,4 @@
 //declare modules so tests can use them
-pub mod Info_Json;
-pub mod Image_Info;
-pub mod IIIF_Image;
+pub mod iiif_image;
+pub mod image_info;
+pub mod info_json;

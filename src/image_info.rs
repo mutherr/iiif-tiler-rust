@@ -1,28 +1,28 @@
+use crate::iiif_image::IIIFImage;
 use std::fmt;
-use crate::IIIF_Image::IIIFImage;
 
 /**
- * This class provides information on the scale and sizes of the tiles. 
+ * This class provides information on the scale and sizes of the tiles.
  */
 #[derive(Debug, PartialEq)]
-pub struct ImageInfo<'a>{
+pub struct ImageInfo<'a> {
     _tile_width: i32,
     _tile_height: i32,
     _zoom_levels: i32,
     _image: &'a IIIFImage,
     _scale_factors: Vec<i32>,
-    _sizes: Vec<(i32,i32)>
+    _sizes: Vec<(i32, i32)>,
 }
 
 impl<'a> ImageInfo<'a> {
     pub fn new(image: &'a IIIFImage, tile_width: i32, tile_height: i32, zoom_level: i32) -> Self {
         let mut info = ImageInfo {
-            _image:image,
-            _tile_width:tile_width,
-            _tile_height:tile_height,
-            _zoom_levels:zoom_level,
+            _image: image,
+            _tile_width: tile_width,
+            _tile_height: tile_height,
+            _zoom_levels: zoom_level,
             _scale_factors: Vec::new(),
-            _sizes: Vec::new()
+            _sizes: Vec::new(),
         };
         info.initialize_image_info();
         info
@@ -44,11 +44,17 @@ impl<'a> ImageInfo<'a> {
                 t_tile_size = j * 256;
                 t_file_count = self._calculate_file_count(t_zoom, t_tile_size, t_tile_size);
                 if t_file_count < p_max_file_no {
-                    println!("Using TileSize: {} Zoom: {} came back with {} files. Target: {}", t_tile_size, t_zoom, t_file_count, p_max_file_no);
+                    println!(
+                        "Using TileSize: {} Zoom: {} came back with {} files. Target: {}",
+                        t_tile_size, t_zoom, t_file_count, p_max_file_no
+                    );
                     t_found = true;
                     break;
                 } else {
-                    println!("Rejected TileSize: {} Zoom: {} came back with {} files. Target: {}", t_tile_size, t_zoom, t_file_count, p_max_file_no);
+                    println!(
+                        "Rejected TileSize: {} Zoom: {} came back with {} files. Target: {}",
+                        t_tile_size, t_zoom, t_file_count, p_max_file_no
+                    );
                 }
             }
         }
@@ -57,7 +63,10 @@ impl<'a> ImageInfo<'a> {
             self.set_tile_height(t_tile_size);
             self.set_zoom_level(t_zoom);
             self.initialize_image_info();
-            println!("Found combinations {} with a file count of {}", self, t_file_count);
+            println!(
+                "Found combinations {} with a file count of {}",
+                self, t_file_count
+            );
         } else {
             panic!("Failed to find combination under {} files", p_max_file_no);
         }
@@ -97,7 +106,10 @@ impl<'a> ImageInfo<'a> {
         self._sizes = Vec::new();
         for i in (0..=self._zoom_levels).rev() {
             let scale = 2i32.pow(i as u32);
-            self._sizes.push((self._image.get_width() / scale, self._image.get_height() / scale));
+            self._sizes.push((
+                self._image.get_width() / scale,
+                self._image.get_height() / scale,
+            ));
             self._scale_factors.push(scale);
         }
     }
@@ -110,7 +122,7 @@ impl<'a> ImageInfo<'a> {
         self._scale_factors.clone()
     }
 
-    pub fn get_sizes(&self) -> Vec<(i32,i32)> {
+    pub fn get_sizes(&self) -> Vec<(i32, i32)> {
         self._sizes.clone()
     }
 

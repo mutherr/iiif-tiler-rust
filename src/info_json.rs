@@ -3,7 +3,7 @@
  */
 use serde_json::{json, Map, Value};
 
-use crate::Image_Info::ImageInfo;
+use crate::image_info::ImageInfo;
 
 #[derive(Debug, PartialEq, Default)]
 pub enum IIIFVersion {
