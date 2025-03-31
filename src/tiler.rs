@@ -28,7 +28,9 @@ impl<'a> Tiler<'a> {
     fn _generate_tiles(&self, image_dir: &str, filename: &str) -> Result<(), Error> {
         let img_dir = format!("{}/{}", image_dir, filename);
         println!("Using {}", self.image);
+        println!("Creating full scaled images...");
         self._generate_sizes(&img_dir)?;
+        println!("Creating tiles...");
         self._generate_scale_tiles(&img_dir)?;
         Ok(())
     }
@@ -54,12 +56,12 @@ impl<'a> Tiler<'a> {
                 } else {
                     "full"
                 };
-                let max_output_path = PathBuf::from(image_dir)
+                let output_path = PathBuf::from(image_dir)
                     .join("full")
                     .join(max_full_str)
                     .join("0")
                     .join("default.jpg");
-                save_image(&scaled_image, &max_output_path)?;
+                save_image(&scaled_image, &output_path)?;
             }
         }
         Ok(())
@@ -151,7 +153,7 @@ impl<'a> Tiler<'a> {
                         scaled_image = DynamicImage::ImageRgb8(tile_image).resize(
                             tiled_width_calc as u32,
                             tiled_height_calc as u32,
-                            image::imageops::FilterType::Nearest,
+                            image::imageops::FilterType::CatmullRom,
                         );
                     } else {
                         scaled_image = scaled_image.resize(
