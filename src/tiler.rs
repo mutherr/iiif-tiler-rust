@@ -144,24 +144,26 @@ impl<'a> Tiler<'a> {
                         )
                         .into_rgb8();
 
-                    let mut scaled_image = DynamicImage::ImageRgb8(tile_image.clone());
-                    if tile_image.width() == tiled_width_calc as u32
+                    let scaled_image = if tile_image.width() == tiled_width_calc as u32
                         && tile_image.height() == tiled_height_calc as u32
                     {
-                        scaled_image = DynamicImage::ImageRgb8(tile_image);
-                    } else if tiled_width_calc > 3 && tiled_height_calc > 3 {
-                        scaled_image = DynamicImage::ImageRgb8(tile_image).resize(
-                            tiled_width_calc as u32,
-                            tiled_height_calc as u32,
-                            image::imageops::FilterType::CatmullRom,
-                        );
+                        // No resize needed, use original image
+                        DynamicImage::ImageRgb8(tile_image)
                     } else {
-                        scaled_image = scaled_image.resize(
+                        // Choose filter type based on target dimensions
+                        let filter_type = if tiled_width_calc > 3 && tiled_height_calc > 3 {
+                            image::imageops::FilterType::CatmullRom
+                        } else {
+                            image::imageops::FilterType::Lanczos3
+                        };
+
+                        // Resize with selected filter type
+                        DynamicImage::ImageRgb8(tile_image).resize(
                             tiled_width_calc as u32,
                             tiled_height_calc as u32,
-                            image::imageops::FilterType::Lanczos3,
-                        );
-                    }
+                            filter_type,
+                        )
+                    };
 
                     match scaled_image.save(&t_output_file) {
                         Ok(_) => {}
