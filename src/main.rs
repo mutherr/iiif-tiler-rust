@@ -127,7 +127,7 @@ fn main() -> Result<()> {
             .init();
     } else {
         pretty_env_logger::formatted_builder()
-            .filter_level(log::LevelFilter::Info)
+            .filter_level(log::LevelFilter::Error)
             .init();
     }
 
