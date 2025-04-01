@@ -134,10 +134,9 @@ impl<'a> ImageInfo<'a> {
         self._sizes = Vec::new();
         for i in (0..=self._zoom_levels).rev() {
             let scale = 2i32.pow(i as u32);
-            self._sizes.push((
-                self._image.get_width() / scale,
-                self._image.get_height() / scale,
-            ));
+            let width = ((self._image.get_width() as f64) / (scale as f64)).ceil() as i32;
+            let height = ((self._image.get_height() as f64) / (scale as f64)).ceil() as i32;
+            self._sizes.push((width, height));
             self._scale_factors.push(scale);
         }
     }
