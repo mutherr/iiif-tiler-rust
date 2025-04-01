@@ -113,8 +113,8 @@ impl<'a> Tiler<'a> {
                             "./{},{},{},{}/{},{}/0/default.jpg",
                             tile_x,
                             tile_y,
-                            scaled_tile_width,
-                            scaled_tile_height,
+                            tiled_width_calc,
+                            tiled_height_calc,
                             tiled_width_calc,
                             tiled_height_calc
                         )
@@ -122,7 +122,7 @@ impl<'a> Tiler<'a> {
                         // formatting path for v2.1
                         format!(
                             "./{},{},{},{}/{},/0/default.jpg",
-                            tile_x, tile_y, scaled_tile_width, scaled_tile_height, tiled_width_calc
+                            tile_x, tile_y, tiled_width_calc, tiled_height_calc, tiled_width_calc
                         )
                     };
 
