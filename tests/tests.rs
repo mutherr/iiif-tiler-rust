@@ -241,4 +241,5 @@ fn count_files(directory: &Path) -> Result<Vec<String>, std::io::Error> {
     Ok(files)
 }
 
-//TODO: 9 tests left to implement
+//TODO: 9 tests left to reimplement
+//TODO: 1 test to add: make sure we can tile a *big* image
