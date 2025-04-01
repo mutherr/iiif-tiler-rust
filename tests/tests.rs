@@ -240,3 +240,5 @@ fn count_files(directory: &Path) -> Result<Vec<String>, std::io::Error> {
 
     Ok(files)
 }
+
+//TODO: 9 tests left to implement
