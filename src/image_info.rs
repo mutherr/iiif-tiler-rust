@@ -34,42 +34,48 @@ impl<'a> ImageInfo<'a> {
 
     pub fn fit_to_max_file_no(&mut self, p_max_file_no: i32) {
         let t_max_zoom = 4;
-        let t_zoom = 0;
         let t_max_tile_size_factor = 5;
-        let mut t_tile_size = 0;
-        let mut t_found = false;
-        let mut t_file_count = 0;
-        for j in 1..=t_max_tile_size_factor {
-            for t_zoom in (1..=t_max_zoom).rev() {
-                t_tile_size = j * 256;
-                t_file_count = self._calculate_file_count(t_zoom, t_tile_size, t_tile_size);
-                if t_file_count < p_max_file_no {
-                    println!(
-                        "Using TileSize: {} Zoom: {} came back with {} files. Target: {}",
-                        t_tile_size, t_zoom, t_file_count, p_max_file_no
-                    );
-                    t_found = true;
-                    break;
-                } else {
-                    println!(
-                        "Rejected TileSize: {} Zoom: {} came back with {} files. Target: {}",
-                        t_tile_size, t_zoom, t_file_count, p_max_file_no
-                    );
+        let t_file_count = 0;
+        // Find optimal tile size and zoom level
+        let (t_zoom_selected, t_tile_size) =
+            'outer: loop {
+                for j in 1..=t_max_tile_size_factor {
+                    let tile_size = j * 256;
+
+                    for t_zoom in (1..=t_max_zoom).rev() {
+                        let file_count = self._calculate_file_count(t_zoom, tile_size, tile_size);
+
+                        if file_count < p_max_file_no {
+                            log::info!(
+                                "Using TileSize: {} Zoom: {} came back with {} files. Target: {}",
+                                tile_size,
+                                t_zoom,
+                                file_count,
+                                p_max_file_no
+                            );
+
+                            break 'outer (t_zoom, tile_size);
+                        } else {
+                            log::debug!(
+                            "Rejected TileSize: {} Zoom: {} came back with {} files. Target: {}",
+                            tile_size, t_zoom, file_count, p_max_file_no
+                        );
+                        }
+                    }
                 }
-            }
-        }
-        if t_found {
-            self.set_tile_width(t_tile_size);
-            self.set_tile_height(t_tile_size);
-            self.set_zoom_level(t_zoom);
-            self.initialize_image_info();
-            println!(
-                "Found combinations {} with a file count of {}",
-                self, t_file_count
-            );
-        } else {
-            panic!("Failed to find combination under {} files", p_max_file_no);
-        }
+
+                // If we get here, we couldn't find a suitable configuration
+                (1, 256);
+            };
+        self.set_tile_width(t_tile_size);
+        self.set_tile_height(t_tile_size);
+        self.set_zoom_level(t_zoom_selected);
+        self.initialize_image_info();
+        log::info!(
+            "Found combinations {} with a file count of {}",
+            self,
+            t_file_count
+        );
     }
 
     pub fn calculate_file_count(&self) -> i32 {
