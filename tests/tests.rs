@@ -1,9 +1,22 @@
 // tests for the iiif tile generator
+use std::fs;
 
 use iiif_tiler_rust::iiif_image::IIIFImage;
 use iiif_tiler_rust::image_info::ImageInfo;
 use iiif_tiler_rust::info_json::{IIIFVersion, InfoJSON};
+use iiif_tiler_rust::tiler::Tiler;
+
 use serde_json::Value;
+use tempfile::TempDir;
+
+const EXPECTED_SIZES: [(i32, i32); 6] = [
+    (42, 109),
+    (84, 218),
+    (168, 437),
+    (337, 874),
+    (675, 1748),
+    (1350, 3496),
+];
 
 #[test]
 fn test_version_2_json() {
@@ -25,23 +38,15 @@ fn test_version_2_json() {
     assert_eq!(parsed["protocol"], "http://iiif.io/api/image");
 
     // check image dimensions
-    assert_eq!(parsed["width"], 9480);
-    assert_eq!(parsed["height"], 6147);
+    assert_eq!(parsed["width"], 3496);
+    assert_eq!(parsed["height"], 1350);
 
     // check sizes
-    let expected_sizes = [
-        (192, 296),
-        (384, 592),
-        (768, 1185),
-        (1536, 2370),
-        (3073, 4740),
-        (6147, 9480),
-    ];
     let iter = parsed["sizes"]
         .as_array()
         .unwrap()
         .iter()
-        .zip(expected_sizes.iter());
+        .zip(EXPECTED_SIZES.iter());
     for (size, expected) in iter {
         assert_eq!(size["height"], expected.0);
         assert_eq!(size["width"], expected.1);
@@ -76,23 +81,15 @@ fn test_version_3_json() {
     assert_eq!(parsed["protocol"], "http://iiif.io/api/image");
 
     // check image dimensions
-    assert_eq!(parsed["width"], 9480);
-    assert_eq!(parsed["height"], 6147);
+    assert_eq!(parsed["width"], 3496);
+    assert_eq!(parsed["height"], 1350);
 
     // check sizes
-    let expected_sizes = [
-        (192, 296),
-        (384, 592),
-        (768, 1185),
-        (1536, 2370),
-        (3073, 4740),
-        (6147, 9480),
-    ];
     let iter = parsed["sizes"]
         .as_array()
         .unwrap()
         .iter()
-        .zip(expected_sizes.iter());
+        .zip(EXPECTED_SIZES.iter());
     for (size, expected) in iter {
         assert_eq!(size["height"], expected.0);
         assert_eq!(size["width"], expected.1);
@@ -108,4 +105,37 @@ fn test_version_3_json() {
         .map(|v| v.as_i64().unwrap()) // Convert each Value to i64
         .collect::<Vec<i64>>();
     assert_eq!(scale_factors, vec![32, 16, 8, 4, 2, 1]);
+}
+
+#[test]
+fn test_sizes() -> Result<(), Box<dyn std::error::Error>> {
+    let tmp_dir = TempDir::new()?;
+    let output_dir = tmp_dir.path().join("iiif");
+    fs::create_dir_all(&output_dir)?;
+
+    let image = IIIFImage::new("tests/fixtures/test.jpg");
+
+    let image_info = ImageInfo::new(&image, 1024, 1024, 5);
+    let version = IIIFVersion::VERSION3;
+
+    let tiler = Tiler::new(&image_info, &version);
+    tiler.generate_tiles(&output_dir.to_string_lossy())?;
+
+    // Test that canonical sizes exist
+    let sizes = image_info.get_sizes();
+    for size in sizes {
+        let width = size.0;
+        let height = size.1;
+
+        let size_image_path =
+            output_dir.join(format!("test/full/{},{}/0/default.jpg", width, height));
+
+        assert!(
+            size_image_path.exists(),
+            "Size mentioned in the info.json is missing: {}",
+            size_image_path.display()
+        );
+    }
+
+    Ok(())
 }

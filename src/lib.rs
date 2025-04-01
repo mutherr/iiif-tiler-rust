@@ -2,3 +2,4 @@
 pub mod iiif_image;
 pub mod image_info;
 pub mod info_json;
+pub mod tiler;
