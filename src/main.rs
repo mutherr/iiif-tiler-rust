@@ -109,7 +109,7 @@ fn process_image(
 }
 
 fn write_manifest(args: &Arguments, info: &ImageInfo, manifest: &str) -> Result<(), Error> {
-    let file_path = format!("{}/{}.json", args.output_dir, info.id());
+    let file_path = format!("{}/{}/info.json", args.output_dir, info.id());
     let file = File::create(file_path)?;
     let json_manifest: Value = serde_json::from_str(manifest)?;
 
