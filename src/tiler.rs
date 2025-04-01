@@ -38,7 +38,7 @@ impl<'a> Tiler<'a> {
 
     fn _generate_sizes(&self, image_dir: &str) -> Result<(), Error> {
         for size in self.image.get_sizes() {
-            let size_str = format!("{},{}", size.0, size.1);
+            let size_str = format!("{},", size.0);
             let scaled_image = self.image.get_image().get_image().resize(
                 size.0 as u32,
                 size.1 as u32,
