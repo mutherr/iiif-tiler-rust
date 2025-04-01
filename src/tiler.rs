@@ -5,6 +5,7 @@ use crate::image_info::ImageInfo;
 use crate::info_json::{IIIFVersion, InfoJSON};
 use anyhow::{Error, Result};
 use image::DynamicImage;
+use log::info;
 
 pub struct Tiler<'a> {
     image: &'a ImageInfo<'a>,
@@ -27,10 +28,10 @@ impl<'a> Tiler<'a> {
 
     fn _generate_tiles(&self, image_dir: &str, filename: &str) -> Result<(), Error> {
         let img_dir = format!("{}/{}", image_dir, filename);
-        log::info!("Using {}", self.image);
-        log::info!("Creating full scaled images...");
+        info!("Using {}", self.image);
+        info!("Creating full scaled images...");
         self._generate_sizes(&img_dir)?;
-        log::info!("Creating tiles...");
+        info!("Creating tiles...");
         self._generate_scale_tiles(&img_dir)?;
         Ok(())
     }
