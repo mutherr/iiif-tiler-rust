@@ -45,6 +45,10 @@ struct Arguments {
     /// Directory where the image tiles are stored.
     #[arg(short, long, default_value = DEFAULT_OUTPUT_DIR)]
     output_dir: String,
+
+    /// Enable verbose logging
+    #[arg(short, long)]
+    verbose: bool,
 }
 
 fn process_directory(
@@ -117,7 +121,15 @@ fn write_manifest(args: &Arguments, info: &ImageInfo, manifest: &str) -> Result<
 fn main() -> Result<()> {
     let args = Arguments::parse();
 
-    pretty_env_logger::init();
+    if args.verbose {
+        pretty_env_logger::formatted_builder()
+            .filter_level(log::LevelFilter::Info)
+            .init();
+    } else {
+        pretty_env_logger::formatted_builder()
+            .filter_level(log::LevelFilter::Info)
+            .init();
+    }
 
     // determine which IIIF version we're working with
     let iiif_version = match args.iiif_version.as_str() {
