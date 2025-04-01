@@ -139,3 +139,49 @@ fn test_sizes() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_exact_tile_match() -> Result<(), Box<dyn std::error::Error>> {
+    let tmp_dir = TempDir::new()?;
+    let output_dir = tmp_dir.path().join("iiif");
+    fs::create_dir_all(&output_dir)?;
+
+    let image = IIIFImage::new("tests/fixtures/exact_tiles.jpg");
+
+    let image_info = ImageInfo::new(&image, 1024, 1024, 1);
+    let version = IIIFVersion::VERSION211;
+
+    let tiler = Tiler::new(&image_info, &version);
+    tiler.generate_tiles(&output_dir.to_string_lossy())?;
+
+    let img_dir = output_dir.join("exact_tiles");
+
+    let expected_files = [
+        "0,0,1024,1024",
+        "0,0,2048,2048",
+        "0,1024,1024,1024",
+        "1024,0,1024,1024",
+        "1024,1024,1024,1024",
+        "full",
+    ];
+
+    let mut actual_files: Vec<String> = fs::read_dir(&img_dir)?
+        .filter_map(|entry| {
+            entry
+                .ok()
+                .and_then(|e| e.file_name().to_str().map(String::from))
+        })
+        .collect();
+
+    let mut expected_files_vec: Vec<String> =
+        expected_files.iter().map(|&s| s.to_string()).collect();
+    expected_files_vec.sort();
+    actual_files.sort();
+
+    assert_eq!(
+        expected_files_vec, actual_files,
+        "Unexpected files from exact tile match image"
+    );
+
+    Ok(())
+}
