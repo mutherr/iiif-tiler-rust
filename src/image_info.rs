@@ -63,9 +63,6 @@ impl<'a> ImageInfo<'a> {
                         }
                     }
                 }
-
-                // If we get here, we couldn't find a suitable configuration
-                (1, 256);
             };
         self.set_tile_width(t_tile_size);
         self.set_tile_height(t_tile_size);
