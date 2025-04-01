@@ -27,10 +27,10 @@ impl<'a> Tiler<'a> {
 
     fn _generate_tiles(&self, image_dir: &str, filename: &str) -> Result<(), Error> {
         let img_dir = format!("{}/{}", image_dir, filename);
-        println!("Using {}", self.image);
-        println!("Creating full scaled images...");
+        log::info!("Using {}", self.image);
+        log::info!("Creating full scaled images...");
         self._generate_sizes(&img_dir)?;
-        println!("Creating tiles...");
+        log::info!("Creating tiles...");
         self._generate_scale_tiles(&img_dir)?;
         Ok(())
     }

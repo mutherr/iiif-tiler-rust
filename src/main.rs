@@ -91,13 +91,15 @@ fn process_image(
     img_path: &str,
     iiif_version: &IIIFVersion,
 ) -> Result<(), Error> {
-    println! {"Loading image from: {}", img_path};
+    log::info!("Loading image from: {}", img_path);
     let img = IIIFImage::new(img_path);
 
     let info = ImageInfo::new(&img, args.tile_size, args.tile_size, args.zoom_levels);
 
     let manifest = Tiler::create_image(&info, &args.output_dir, &args.uri, iiif_version)?;
     write_manifest(args, &info, &manifest)?;
+
+    log::info!("Successfully processed image: {}", img_path);
     Ok(())
 }
 
@@ -113,6 +115,8 @@ fn write_manifest(args: &Arguments, info: &ImageInfo, manifest: &str) -> Result<
 
 fn main() -> Result<()> {
     let args = Arguments::parse();
+
+    env_logger::init();
 
     // determine which IIIF version we're working with
     let iiif_version = match args.iiif_version.as_str() {
