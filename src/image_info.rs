@@ -76,28 +76,53 @@ impl<'a> ImageInfo<'a> {
         self._calculate_file_count(self._zoom_levels, self._tile_width, self._tile_height)
     }
 
-    fn _calculate_file_count(&self, p_zoom: i32, p_tile_width: i32, p_tile_height: i32) -> i32 {
+    pub fn _calculate_file_count(&self, p_zoom: i32, p_tile_width: i32, p_tile_height: i32) -> i32 {
         let mut t_file_count = 0;
+
+        // println!("zoom: {} tile width {}", p_zoom, p_tile_width);
         let mut reached_multiple_fullsized_tile = false;
+
         for t_zoom in 0..p_zoom {
-            let t_zoom_factor = 2i32.pow(t_zoom as u32);
+            let t_zoom_factor = 2i32.pow(t_zoom as u32); // Math.pow(2, tZoom) equivalent
             let t_width = self._image.get_width() / t_zoom_factor;
             let t_height = self._image.get_height() / t_zoom_factor;
-            let t_tile_xcount = (t_width as f64 / p_tile_width as f64).ceil() as i32;
-            let t_tile_ycount = (t_height as f64 / p_tile_height as f64).ceil() as i32;
+
+            // Calculate number of tiles needed
+            let t_tile_x_count = (t_width as f64 / p_tile_width as f64).ceil() as i32;
+            let t_tile_y_count = (t_height as f64 / p_tile_height as f64).ceil() as i32;
+
+            // println!("Zoomfactor {} tiles-x {} tiles-y {} width = {} tileCount = {}",
+            //         t_zoom_factor, t_tile_x_count, t_tile_y_count, t_width,
+            //         t_tile_x_count * t_tile_y_count);
+
+            // Each tile creates 4 files: 3 directories and 1 image
             if t_width < p_tile_width && t_height < p_tile_height {
-                t_file_count += t_tile_xcount * t_tile_ycount * 3;
+                t_file_count += t_tile_x_count * t_tile_y_count * 3;
                 reached_multiple_fullsized_tile = true;
             } else {
-                t_file_count += t_tile_xcount * t_tile_ycount * 4;
+                t_file_count += t_tile_x_count * t_tile_y_count * 4;
             }
         }
+
+        // If the tile is bigger than the image size we add 3 directories but
+        // for one we need to add 4.
         if reached_multiple_fullsized_tile {
             t_file_count += 1;
         }
-        t_file_count += ((p_zoom + 1) * 3) + 4;
+
+        // println!("Total tiles {}", t_file_count);
+
+        // Add full sizes (1 full directory then three sub directories (size/rotation/file))
+        // And full w,h
+        // println!("Sizes {} should be 16", ((p_zoom + 2) * 3) + 4);
+        t_file_count += ((p_zoom + 2) * 3) + 4;
+
+        // Add info.json
         t_file_count += 1;
+
+        // Add containing directory
         t_file_count += 1;
+
         t_file_count
     }
 

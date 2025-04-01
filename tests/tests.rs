@@ -1,5 +1,6 @@
 // tests for the iiif tile generator
 use std::fs;
+use std::path::Path;
 
 use iiif_tiler_rust::iiif_image::IIIFImage;
 use iiif_tiler_rust::image_info::ImageInfo;
@@ -184,4 +185,58 @@ fn test_exact_tile_match() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     Ok(())
+}
+
+#[test]
+fn test_check_count() -> Result<(), Box<dyn std::error::Error>> {
+    let tmp_dir = TempDir::new()?;
+    let output_dir = tmp_dir.path().join("iiif");
+    fs::create_dir_all(&output_dir)?;
+
+    let image_file = "tests/fixtures/exact_tiles.jpg";
+    let image = IIIFImage::new(image_file);
+
+    let image_info = ImageInfo::new(&image, 256, 256, 4);
+
+    let predicted_count = image_info.calculate_file_count();
+    let version = IIIFVersion::VERSION211;
+
+    let tiler = Tiler::new(&image_info, &version);
+    tiler.generate_tiles(&output_dir.to_string_lossy())?;
+
+    let actual_files = count_files(&output_dir)?;
+    let actual_count = actual_files.len() as i32;
+
+    assert_eq!(
+        predicted_count, actual_count,
+        "Predicted number of files is different to the actual."
+    );
+
+    Ok(())
+}
+
+/// Recursively count files in a directory
+fn count_files(directory: &Path) -> Result<Vec<String>, std::io::Error> {
+    let mut files = Vec::new();
+
+    // Optional debug output
+    // if fs::read_dir(directory)?.count() > 1 {
+    //     println!("Multiple {}", directory.display());
+    // }
+
+    for entry in fs::read_dir(directory)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        if let Some(path_str) = path.to_str() {
+            files.push(path_str.to_string());
+        }
+
+        if path.is_dir() {
+            let mut sub_files = count_files(&path)?;
+            files.append(&mut sub_files);
+        }
+    }
+
+    Ok(files)
 }
