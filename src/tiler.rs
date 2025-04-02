@@ -87,62 +87,44 @@ impl<'a> Tiler<'a> {
                 t_tile_num_height += 1;
             }
 
-            // println!(
-            //     "Generating {} tiles for scale {}: {}x{}",
-            //     t_tile_num_width * t_tile_num_height,
-            //     scale,
-            //     t_scale_level_width,
-            //     t_scale_level_height
-            // );
-            // println!(
-            //     "Tile size: {}x{}",
-            //     self.image.get_tile_width() * scale,
-            //     self.image.get_tile_height() * scale
-            // );
-
             //make tiles
             for x in 0..t_tile_num_width {
                 for y in 0..t_tile_num_height {
-                    // println!("{}, {}", x, y);
                     let tile_x = x * self.image.get_tile_width() * scale;
                     let tile_y = y * self.image.get_tile_height() * scale;
-                    let scaled_tile_width = self.image.get_tile_width() * scale;
+                    let mut scaled_tile_width = self.image.get_tile_width() * scale;
                     let mut tiled_width_calc = self.image.get_tile_width();
                     if tile_x + scaled_tile_width > self.image.get_width() {
-                        let scaled_tile_width = self.image.get_width() - tile_x;
-                        tiled_width_calc = (scaled_tile_width as f32 / scale as f32).ceil() as i32;
+                        let new_width = self.image.get_width() - tile_x;
+                        scaled_tile_width = new_width;
+                        tiled_width_calc = (new_width as f32 / scale as f32).ceil() as i32;
                     }
-                    let scaled_tile_height = self.image.get_tile_height() * scale;
+                    let mut scaled_tile_height = self.image.get_tile_height() * scale;
                     let mut tiled_height_calc = self.image.get_tile_height();
                     if tile_y + scaled_tile_height > self.image.get_height() {
-                        let scaled_tile_height = self.image.get_height() - tile_y;
-                        tiled_height_calc =
-                            (scaled_tile_height as f32 / scale as f32).ceil() as i32;
+                        let new_height = self.image.get_height() - tile_y;
+                        scaled_tile_height = new_height;
+                        tiled_height_calc = (new_height as f32 / scale as f32).ceil() as i32;
                     }
 
                     let url = if *self.version == IIIFVersion::VERSION3 {
                         // formatting path for v3
                         format!(
-                            "./{},{},{},{}/{},{}/0/default.jpg",
+                            "/{},{},{},{}/{},{}/0/default.jpg",
                             tile_x,
                             tile_y,
                             scaled_tile_width,
                             scaled_tile_height,
-                            scaled_tile_width,
-                            scaled_tile_height
+                            tiled_width_calc,
+                            tiled_height_calc
                         )
                     } else {
                         // formatting path for v2.1
                         format!(
-                            "./{},{},{},{}/{},/0/default.jpg",
-                            tile_x,
-                            tile_y,
-                            scaled_tile_width,
-                            scaled_tile_height,
-                            scaled_tile_width
+                            "/{},{},{},{}/{},/0/default.jpg",
+                            tile_x, tile_y, scaled_tile_width, scaled_tile_height, tiled_width_calc
                         )
                     };
-                    // println!("Tile URL: {}", url);
 
                     let t_output_file = PathBuf::from(format!("{}/{}", p_image_dir, url));
                     if let Some(parent_dir) = t_output_file.parent() {
