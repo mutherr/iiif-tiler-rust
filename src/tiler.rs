@@ -79,7 +79,6 @@ impl<'a> Tiler<'a> {
                 (t_scale_level_width as f32 / self.image.get_tile_width() as f32).floor() as i32;
             let mut t_tile_num_height =
                 (t_scale_level_height as f32 / self.image.get_tile_height() as f32).floor() as i32;
-
             //add extra images on either axis as needed if the tile size doesn't evenly divide the axis length
             if (t_scale_level_width % self.image.get_tile_width()) != 0 {
                 t_tile_num_width += 1;
@@ -88,9 +87,23 @@ impl<'a> Tiler<'a> {
                 t_tile_num_height += 1;
             }
 
+            // println!(
+            //     "Generating {} tiles for scale {}: {}x{}",
+            //     t_tile_num_width * t_tile_num_height,
+            //     scale,
+            //     t_scale_level_width,
+            //     t_scale_level_height
+            // );
+            // println!(
+            //     "Tile size: {}x{}",
+            //     self.image.get_tile_width() * scale,
+            //     self.image.get_tile_height() * scale
+            // );
+
             //make tiles
             for x in 0..t_tile_num_width {
                 for y in 0..t_tile_num_height {
+                    // println!("{}, {}", x, y);
                     let tile_x = x * self.image.get_tile_width() * scale;
                     let tile_y = y * self.image.get_tile_height() * scale;
                     let scaled_tile_width = self.image.get_tile_width() * scale;
@@ -113,18 +126,23 @@ impl<'a> Tiler<'a> {
                             "./{},{},{},{}/{},{}/0/default.jpg",
                             tile_x,
                             tile_y,
-                            tiled_width_calc,
-                            tiled_height_calc,
-                            tiled_width_calc,
-                            tiled_height_calc
+                            scaled_tile_width,
+                            scaled_tile_height,
+                            scaled_tile_width,
+                            scaled_tile_height
                         )
                     } else {
                         // formatting path for v2.1
                         format!(
                             "./{},{},{},{}/{},/0/default.jpg",
-                            tile_x, tile_y, tiled_width_calc, tiled_height_calc, tiled_width_calc
+                            tile_x,
+                            tile_y,
+                            scaled_tile_width,
+                            scaled_tile_height,
+                            scaled_tile_width
                         )
                     };
+                    // println!("Tile URL: {}", url);
 
                     let t_output_file = PathBuf::from(format!("{}/{}", p_image_dir, url));
                     if let Some(parent_dir) = t_output_file.parent() {
