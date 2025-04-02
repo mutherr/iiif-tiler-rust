@@ -15,7 +15,7 @@ use serde_json::{to_writer_pretty, Value};
 use tiler::Tiler;
 
 const DEFAULT_URI: &str = "http://localhost:8887/iiif/";
-const DEFAULT_VERSION: &str = "2";
+const DEFAULT_VERSION: &str = "3";
 const DEFAULT_ZOOM_LEVELS: i32 = 5;
 const DEFAULT_TILE_SIZE: i32 = 1024;
 const DEFAULT_OUTPUT_DIR: &str = "iiif";
